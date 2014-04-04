@@ -71,6 +71,10 @@ unsigned char display_buffer_1[BUFFER_SIZE];
 unsigned char display_buffer_2[BUFFER_SIZE];
 static unsigned char *display_buffer = display_buffer_1;
 
+unsigned char random_colours_buffer[BUFFER_SIZE];
+unsigned int random_colours_buffer_pixel = 0;
+
+
 volatile byte display_buffer_live = 1;
 
 volatile byte new_row = 0;
@@ -84,7 +88,7 @@ byte row = 0;
 unsigned long tickcounter = 0;
 unsigned long lastdata_tickcounter = 0;
 // 40000 = 20 seconds
-unsigned long timeout = 40000;
+unsigned long timeout = 4000;
 
 volatile boolean cycling = false;
 // 1000 ~ 1/2 second
@@ -92,13 +96,14 @@ unsigned long cycle_period = 1000;
 unsigned long cycle_tickcounter = 0;
 
 unsigned long colours[] = {0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0x00FFFF, 0xFF00FF, 0xFFFFFF};
+int colours_length = 7;
 
 void set_initial_pattern(void) {
   set_random_colours();
 }
 
 void set_random_colours() {
-  int colours_length = 7;
+  
   for (int pixel=0; pixel < RGB_LEDS; pixel++) {
     unsigned long colour = colours[random(colours_length)];
     display_buffer[pixel * 3 + 0] = colour & 0xFF;
@@ -189,12 +194,23 @@ void loop()
                                               
     new_row = 0;   
     tickcounter++;
-
    
     // If we are cycling, then see if we need to cycle again
     if (cycling == true) {
+      if (random_colours_buffer_pixel < RGB_LEDS) {
+        unsigned long colour = colours[random(colours_length)];
+        //colour = colours[0];
+        random_colours_buffer[random_colours_buffer_pixel * 3 + 0] = colour & 0xFF;
+        random_colours_buffer[random_colours_buffer_pixel * 3 + 1] = (colour >> 8 ) & 0xFF;
+        random_colours_buffer[random_colours_buffer_pixel * 3 + 2] = (colour >> 16) & 0xFF; 
+        random_colours_buffer_pixel++;
+      }
       if (tickcounter - cycle_tickcounter > cycle_period) {
-        set_random_colours();
+        //set_random_colours();
+        for (int i=0; i<BUFFER_SIZE;i++){
+           display_buffer[i] = random_colours_buffer[i];
+        }
+        random_colours_buffer_pixel = 0;
         cycle_tickcounter = tickcounter;
       }
     } else {
