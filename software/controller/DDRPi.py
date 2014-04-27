@@ -397,6 +397,12 @@ class DDRPiMaster():
 
 		for plugin_dir in directory_list:
 
+			# If the directory is not fully qualified, make it relative
+			#  to the DDRPi directory
+			if (not os.path.isabs(plugin_dir)):
+				root_directory = os.path.dirname(os.path.realpath(__file__))
+				plugin_dir = os.path.join(root_directory, plugin_dir)
+
 			if not os.path.isdir(plugin_dir):
 				print ("'%s' is not a directory" % (plugin_dir))
 
