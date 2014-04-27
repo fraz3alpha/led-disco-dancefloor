@@ -14,6 +14,8 @@ from VisualisationPlugin import VisualisationPlugin
 #from DDRPi import DDRPiPlugin
 #from lib.utils import ColourUtils
 
+from lib.logging import Logger
+
 class Filter(object):
 	
 	def process(self, frame):
@@ -21,6 +23,7 @@ class Filter(object):
 
 class Pattern(object):
 	def __init__(self, patternFile):
+		Logger.info("pattern", "Loading %s" % patternFile)
 		with open(patternFile) as csvFile:
 			reader = csv.reader(csvFile)
 			patternMeta = reader.next()

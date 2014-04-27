@@ -1,5 +1,7 @@
 __authors__ = ['Andrew Taylor']
 
+from logging import Logger
+
 class FloorCanvas(object):
 	# The floor canvas is a large array which we can draw on to
 	# It provides a number of  methods that you would expect for 
@@ -21,7 +23,7 @@ class FloorCanvas(object):
 		self.height = 0
 		if (height > 0):
 			self.height = height
-		print ("Creating a canvas with width=%d, height=%d" % (width, height))
+		Logger.info("FloorCanvas", "Creating a canvas with width=%d, height=%d" % (width, height))
 		# Create the two dimensional array for the canvas object
 		self.data = [[self.BLACK for y in range(height)] for x in range(width)]
 
@@ -99,7 +101,7 @@ class FloorCanvas(object):
 		if (from_x == to_x and from_y == to_y):
 			self.set_pixel(int(from_x), int(from_y))
 			return None
-		#print ("(%d,%d) > (%d,%d)" % (from_x, from_y, to_x, to_y))
+		#Logger.verbose("FloorCanvas", "(%d,%d) > (%d,%d)" % (from_x, from_y, to_x, to_y))
 		if (abs(from_x - to_x) > abs(from_y - to_y)):
 			# Make sure that to_x is >= from_x so that the range()
 			#  works properly
@@ -111,9 +113,9 @@ class FloorCanvas(object):
 				temp = to_y
 				to_y = from_y
 				from_y = temp
-			#print ("Going from x=%d to x=%d" % (from_x, to_x))
+			#Logger.verbose("FloorCanvas", "Going from x=%d to x=%d" % (from_x, to_x))
 			gradient = float(to_y - from_y) / float(to_x - from_x)
-			#print ("Gradient=%f, c=%d" % (gradient, from_y))
+			#Logger.verbose("FloorCanvas", "Gradient=%f, c=%d" % (gradient, from_y))
 			for x in range(to_x - from_x + 1):
 				y = gradient * float(x) + from_y
 				self.set_pixel(int(x + from_x), int(y), colour)
@@ -128,7 +130,7 @@ class FloorCanvas(object):
 				temp = to_y
 				to_y = from_y
 				from_y = temp
-			#print ("Going from y=%d to y=%d" % (from_y, to_y))
+			#Logger.verbose("FloorCanvas", "Going from y=%d to y=%d" % (from_y, to_y))
 			gradient = float(to_x - from_x) / float(to_y - from_y)
 			for y in range(to_y - from_y + 1):
 				x = gradient * float(y) + from_x

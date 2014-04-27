@@ -7,7 +7,7 @@ import pygame
 # For counting instances of output classes
 from itertools import count
 
-
+from logging import Logger
 
 class Output(object):
 
@@ -111,7 +111,7 @@ class GuiOutput(Output):
 		return None
 
 	def playlist_model_changed_event(self):
-		print("Notified of change in the playlist model!")
+		Logger.info("GuiOutput", "Notified of change in the playlist model!")
 		#self.redraw()
 		return None
 
@@ -187,7 +187,7 @@ class GuiOutput(Output):
 			(size_width, size_height) = font.size(playlist_entry_string)
 			drawable.blit(text, (20,500 + index * 20 - size_height))
 
-		# Print an estimate of the FPS
+		# Display an estimate of the FPS
 		fps = self.clock.get_fps()
 		fps_s = "%d" % fps
 
@@ -197,8 +197,6 @@ class GuiOutput(Output):
 		(size_width, size_height) = font.size(fps_s)
 		padding = 5
 		drawable.blit(text, (400 - size_width - padding,800 - size_height - padding))
-
-		#print(textpos)
 
 	def draw_controllers(self, drawable):
 		self.draw_controller(drawable, (200-100,400))
@@ -352,9 +350,9 @@ class SerialOutput(Output):
 			self.baud = config["baud"]
 		if ("timeout" in config):
 			self.timeout = config["timeout"]
-		print("Creating serial port with tty=%s, baud=%s, timeout=%s" % (self.tty, self.baud, self.timeout))
+		Logger.info("SerialOutput", "Creating serial port with tty=%s, baud=%s, timeout=%s" % (self.tty, self.baud, self.timeout))
 		self.serial_port = serial.Serial(self.tty, self.baud, timeout=self.timeout)
-		print("Hello, my name is %s" % self.name)
+		Logger.info("SerialOutput", "Hello, my name is %s" % self.name)
 
 	def set_output_converter(self, converter):
 		# The converter will be used to pick the 

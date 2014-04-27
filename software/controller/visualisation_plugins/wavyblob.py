@@ -6,12 +6,13 @@ import colorsys
 import math
 
 from DDRPi import FloorCanvas
+from lib.logging import Logger
 
 class WavyBlobVisualisationPlugin(VisualisationPlugin):
 
 	def __init__(self):
 		self.clock = pygame.time.Clock()
-		print ("Initialising WavyBlobVisualisationPlugin")
+		Logger.info("WavyBlobPlugin", "Initialising WavyBlobVisualisationPlugin")
 
 	def draw_frame(self, canvas):
 		# Limit the frame rate.
@@ -60,7 +61,6 @@ class WavyBlobVisualisationPlugin(VisualisationPlugin):
 				y_delta = math.fabs(y-y_this_centre_pixel)
 
 				distance_away = math.sqrt(x_delta*x_delta + y_delta*y_delta)
-				# print "Distance away for %d,%d : %f" % (x,y, distance_away)
 
 				t_period = 4000.0
 				t_adjustment = t*2.0*math.pi/t_period

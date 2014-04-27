@@ -1,3 +1,4 @@
+from lib.logging import Logger
 
 class VisualisationPlugin(object):
 
@@ -5,7 +6,7 @@ class VisualisationPlugin(object):
 	Called just before starting a plugin
 	"""
 	def configure(self):
-		print ("This plugin doesn't have a configure() method")
+		Logger.warn("Plugin", "This plugin doesn't have a configure() method")
 
 	"""
 	Called in a loop to update the display, draw_frame is where most of the 
@@ -13,7 +14,7 @@ class VisualisationPlugin(object):
 	 appropriate value. 25 fps is ample.
 	"""
 	def draw_frame(self, canvas):
-		print ("This plugin has failed to implement update_surface(canvas)")
+		Logger.error("Plugin", "This plugin has failed to implement update_surface(canvas)")
 		return None
 
 	"""
@@ -24,7 +25,7 @@ class VisualisationPlugin(object):
 	 plugin
 	"""
 	def draw_splash(self, canvas):
-		print ("This plugin doesn't have a splash screen")
+		Logger.warn("Plugin", "This plugin doesn't have a splash screen")
 
 	"""
 	If a plugin wants to consume a keyboard or controller input event,
