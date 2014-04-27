@@ -111,12 +111,12 @@ class GuiInputAdapter(object):
 	def handle_event(self, canvas, e):
 		print ("GuiInputAdapter, GuiOutput - %s" % (self.gui_output))
 		if e.type == pygame.MOUSEMOTION:
-			print e.pos
+			print (e.pos)
 			relative_position = self.gui_output.get_fractional_position(canvas, *e.pos)
 			#e['floor_relative_pos'] = relative_position
-			print relative_position
+			print (relative_position)
 			cell_position = self.gui_output.get_nearest_cell(canvas, *e.pos)
-			print cell_position
+			print (cell_position)
 			#e['floor_cell_pos'] = cell_position
 		return e
 
@@ -357,9 +357,9 @@ class DDRPiMaster():
 
 
 		if pygame.event.event_name(e.type) == "JoyButtonDown":
-			print "JoyButtonDown"
+			print ("JoyButtonDown")
 		if pygame.event.event_name(e.type) == "JoyButtonUp":
-			print "JoyButtonUp"
+			print ("JoyButtonUp")
 
 		return None
 
