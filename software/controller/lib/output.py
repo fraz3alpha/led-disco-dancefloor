@@ -205,7 +205,7 @@ class GuiOutput(Output):
 		return None
 
 	#def draw_controller(self, drawable, (x,y), (width,height)):
-	def draw_controller(self, drawable, (centre_x, centre_y)):
+	def draw_controller(self, drawable, centre):
 
 		# Draw a SNES controller, with feedback as to whether
 		#  buttons are being pressed or not
@@ -217,6 +217,8 @@ class GuiOutput(Output):
 		# Circles at either side are 60mm in diameter
 		# Middle is only 53mm
 		# Total width 142mm
+
+		(centre_x, centre_y) = centre
 
 		controller_width = 142
 		controller_height = 60
