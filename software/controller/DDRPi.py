@@ -99,26 +99,29 @@ from lib.floorcanvas import FloorCanvas
 from lib.output import GuiOutput, SerialOutput
 from lib.playlist import PluginPlaylistModel
 
-from lib.logging import Logger
+import logging
 
 #from VisualisationPlugin import VisualisationPlugin
 #from visualisation_plugins.wavyblob import WavyBlobVisualisationPlugin
 
+logger = logging.getLogger(__name__)
 
 class GuiInputAdapter(object):
+
+	logger = logging.getLogger(__name__)
 
 	def __init__(self, gui_output):
 		self.gui_output = gui_output
 
 	def handle_event(self, canvas, e):
-		Logger.info("DDRPi GuiInputAdapter", "GuiOutput - %s" % (self.gui_output))
+		self.logger.info("GuiOutput - %s" % (self.gui_output))
 		if e.type == pygame.MOUSEMOTION:
-			Logger.info("DDRPi GuiInputAdapter", "%s" % e.pos)
+			self.logger.info("%s" % e.pos)
 			relative_position = self.gui_output.get_fractional_position(canvas, *e.pos)
 			#e['floor_relative_pos'] = relative_position
-			Logger.info("DDRPi GuiInputAdapter", "%s" % relative_position)
+			self.logger.info("%s" % relative_position)
 			cell_position = self.gui_output.get_nearest_cell(canvas, *e.pos)
-			Logger.info("DDRPi GuiInputAdapter", "%s" % cell_position)
+			self.logger.info("%s" % cell_position)
 			#e['floor_cell_pos'] = cell_position
 		return e
 
@@ -126,6 +129,7 @@ class DDRPiMaster():
 
 	DEFAULT_CONFIG_FILE = "config.yaml"
 	DEFAULT_PLUGIN_DIRECTORY = "plugins"
+	logger = logging.getLogger(__name__)
 
 	"""
 	Initial constructor set up
@@ -180,9 +184,9 @@ class DDRPiMaster():
 	The actual running of the code
 	"""
 	def run_ddrpi(self):
-		Logger.info("DDRPi", "Starting DDRPi running at %s" % (time.strftime('%H:%M:%S %d/%m/%Y %Z')))
+		self.logger.info("Starting DDRPi running at %s" % (time.strftime('%H:%M:%S %d/%m/%Y %Z')))
 		config = self.parse_commandline_arguments()
-		Logger.info("DDRPi", "%s" % config)
+		self.logger.info("%s" % config)
 
 		# Initialise pygame, which we use for the GUI, controllers, rate limiting etc...
 		pygame.init()
@@ -201,15 +205,15 @@ class DDRPiMaster():
 		#  packing this way.
 		if ("outputs" in config):
 			for output_number, details in config["outputs"].iteritems():
-				Logger.info("DDRPi", "%d - %s" % (output_number, details))
+				self.logger.info("%d - %s" % (output_number, details))
 				if "enabled" in details:
 					if details["enabled"] is False:
-						Logger.info("DDRPi", "Skipping disabled output %d" % output_number)
-						Logger.info("DDRPi", "%s" % details)
+						self.logger.info("Skipping disabled output %d" % output_number)
+						self.logger.info("%s" % details)
 						continue
-				Logger.info("DDRPi", "Configuring output %d" % output_number)
+				self.logger.info("Configuring output %d" % output_number)
 				if details["type"] == "serial":
-					Logger.info("DDRPi", "Creating a SerialOutput class")
+					self.logger.info("Creating a SerialOutput class")
 					serial_output = SerialOutput(details)
 					serial_output.set_name("SerialOutput-#%d" % output_number)
 					output_devices.append(serial_output)
@@ -217,12 +221,12 @@ class DDRPiMaster():
 					# Skip the gui if headless has been specified
 					if "headless" in config["system"] and config["system"]["headless"] is True:
 						continue
-					Logger.info("DDRPi", "Creating a GuiOutput class [There can be only one]")
+					self.logger.info("Creating a GuiOutput class [There can be only one]")
 					gui_output = GuiOutput()
 					output_devices.append(gui_output)
 					self.gui = gui_output
 				else:
-					Logger.warn("DDRPi", "I don't know how to handle an output of type '%s'" % (details["type"]))
+					self.logger.warn("I don't know how to handle an output of type '%s'" % (details["type"]))
 
 		# Initialise any connected joypads/joysticks
 		controllers = self.init_joysticks()
@@ -244,12 +248,12 @@ class DDRPiMaster():
 			if only_plugin in available_plugins:
 				plugin_attr = dict(name=only_plugin, duration=5000, obj=available_plugins[only_plugin])
 				playlistModel.add_plugin(plugin_attr)
-				Logger.info("DDRPi", "Added requested plugin: %s" % (only_plugin))
+				self.logger.info("Added requested plugin: %s" % (only_plugin))
 			else:
-				Logger.info("DDRPi", "Unable to find requested plugin: %s" % (only_plugin))
-				Logger.info("DDRPi", "Available plugins are:")
+				self.logger.info("Unable to find requested plugin: %s" % (only_plugin))
+				self.logger.info("Available plugins are:")
 				for available_plugin in available_plugins:
-					Logger.info("DDRPi", "  %s" % (available_plugin))
+					self.logger.info("  %s" % (available_plugin))
 				# This is intended as a development debug option, or at the very least the 
 				#  person using it should know what they are doing, so if it isn't available
 				#  for whatever reason, exit.
@@ -345,7 +349,7 @@ class DDRPiMaster():
 		return canvas
 
 	def print_input_event(self, e):
-		Logger.info("DDRPi", "%s" %e)
+		self.logger.info("%s" %e)
 
 		X = 0
 		A = 1
@@ -358,9 +362,9 @@ class DDRPiMaster():
 
 
 		if pygame.event.event_name(e.type) == "JoyButtonDown":
-			Logger.info("DDRPi", "JoyButtonDown")
+			self.logger.info("JoyButtonDown")
 		if pygame.event.event_name(e.type) == "JoyButtonUp":
-			Logger.info("DDRPi", "JoyButtonUp")
+			self.logger.info("JoyButtonUp")
 
 		return None
 
@@ -380,7 +384,7 @@ class DDRPiMaster():
 			self.__controllers__[c] = pygame.joystick.Joystick(c)
 			self.__controllers__[c].init()
 			
-		Logger.info("DDRPi", "Initialised %s controllers" % num_c)
+		self.logger.info("Initialised %s controllers" % num_c)
 
 		return self.__controllers__
 		
@@ -405,7 +409,7 @@ class DDRPiMaster():
 				plugin_dir = os.path.join(root_directory, plugin_dir)
 
 			if not os.path.isdir(plugin_dir):
-				Logger.warn("DDRPi", "'%s' is not a directory" % (plugin_dir))
+				self.logger.warn("'%s' is not a directory" % (plugin_dir))
 
 			# Recursively search the given directory for .py files which 
 			#  aren't commented out (start with __)
@@ -429,12 +433,12 @@ class DDRPiMaster():
 									these_plugins[obj.__name__] = obj
 
 			# Print out a list of what plugins were loaded from each directory
-			Logger.info("DDRPi", "Visualisation plugins loaded from '%s':" % (plugin_dir))
+			self.logger.info("Visualisation plugins loaded from '%s':" % (plugin_dir))
 			if len(these_plugins) == 0:
-				Logger.info("DDRPi", "  None")
+				self.logger.info("  None")
 			else:
 				for plugin_name in these_plugins:
-					Logger.info("DDRPi", "  %s" % (plugin_name))
+					self.logger.info("  %s" % (plugin_name))
 
 			# Add these_plugins to our master list
 			available_plugins.update(these_plugins)
@@ -473,8 +477,8 @@ class DDRPiMaster():
 		# --plugin defines a single plugin to be used, helpful in development and testing
 		parser.add_argument('--plugin', required=False, dest='plugin', default=None, help='The classname of the one plugin to use')
 		args, unknown = parser.parse_known_args()
-		Logger.info("DDRPi", "Just the --config argument:")
-		Logger.info("DDRPi", "%s"% args)
+		self.logger.info("Just the --config argument:")
+		self.logger.info("%s"% args)
 	
 		# The contents of the config file, either parsed from a file, or a test one created
 		#  in memory
@@ -490,11 +494,11 @@ class DDRPiMaster():
 			if (args.config is None):
 				args.config = self.DEFAULT_CONFIG_FILE
 				if (not os.path.isfile(args.config)):
-					Logger.warn("DDRPi", "default config file (%s), does not exist" % (args.config))
+					self.logger.warn("default config file (%s), does not exist" % (args.config))
 					exit()
 			else:
 				if (not os.path.isfile(args.config)):
-					Logger.warn("DDRPi", "config file passed (%s), does not exist" % (args.config))
+					self.logger.warn("config file passed (%s), does not exist" % (args.config))
 					exit()
 
 			# By this point args.config will be a file that does exist
@@ -502,9 +506,9 @@ class DDRPiMaster():
 
 		# Something could have gone wrong parsing either one though
 		if (config_file_data is not None):
-			Logger.info("DDRPi", "%s" % config_file_data)
+			self.logger.info("%s" % config_file_data)
 		else:
-			Logger.error("DDRPi", "The config file was unable to be parsed, nothing will work, exiting")
+			self.logger.error("The config file was unable to be parsed, nothing will work, exiting")
 			exit()
 
 		# Add in select other commandline arguments into the system section of the config file
@@ -552,9 +556,9 @@ class DDRPiMaster():
 	Parse the config file, which should be in YAML form
 	"""
 	def parse_config_file(self, config_file):
-		Logger.info("DDRPi", "Parsing config file: '%s'" % (config_file))
+		self.logger.info("Parsing config file: '%s'" % (config_file))
 		if (not os.path.isfile(config_file)):
-			Logger.error("DDRPi", "Error, provided config file: '%s', does not exist, exiting" % (config_file))
+			self.logger.error("Error, provided config file: '%s', does not exist, exiting" % (config_file))
 			exit()
 		f = open(config_file)
 		data = yaml.load(f)
@@ -571,8 +575,9 @@ class DDRPiMaster():
 		return args;
 
 # GO GO GO!
-Logger.set_logging_level("info")
-Logger.info("DDRPi", "Loading DDRPi")
+
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
+logger.info("Loading DDRPi")
 ddrpi = DDRPiMaster()
 ddrpi.run()
 #ddrpi.run_indefinitely()

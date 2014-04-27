@@ -14,7 +14,7 @@ from VisualisationPlugin import VisualisationPlugin
 #from DDRPi import DDRPiPlugin
 #from lib.utils import ColourUtils
 
-from lib.logging import Logger
+import logging
 
 class Filter(object):
 	
@@ -22,8 +22,11 @@ class Filter(object):
 		raise NotImplementedError
 
 class Pattern(object):
+
+	logger = logging.getLogger(__name__)
+
 	def __init__(self, patternFile):
-		Logger.info("pattern", "Loading %s" % patternFile)
+		self.logger.info("Loading %s" % patternFile)
 		with open(patternFile) as csvFile:
 			reader = csv.reader(csvFile)
 			patternMeta = reader.next()

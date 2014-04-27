@@ -3,9 +3,11 @@ __authors__ = ['Andrew Taylor']
 # For the timing features
 import pygame
 
-from logging import Logger
+import logging
 
 class PluginPlaylistModel(object):
+
+	logger = logging.getLogger(__name__)
 
 	# Contains a list of plugins that are active
 	# This could be a playlist for the evening, which
@@ -85,7 +87,7 @@ class PluginPlaylistModel(object):
 		self.log_message ("Playlist count: %d, current position: %d" % (len(self.playlist), self.current_position))
 
 		# Only increment if it is likely to do any good
-		Logger.info("PluginPlaylist", "Current index = %d" % (self.current_position))
+		self.logger.info("Current index = %d" % (self.current_position))
 		if self.current_position < len(self.playlist):
 			self.current_position += 1
 		# See if we have reached the end
@@ -118,7 +120,7 @@ class PluginPlaylistModel(object):
 		self.current_plugin = current_plugin
 		self.current_plugin['instance'].start()
 
-		Logger.info("PluginPlaylist", "returning new plugin - %s" % (self.current_plugin))
+		self.logger.info("returning new plugin - %s" % (self.current_plugin))
 		self.notify_model_changed_listeners()
 		return self.current_plugin		
 	
@@ -186,8 +188,8 @@ class PluginPlaylistModel(object):
 		pass
 
 	def print_playlist(self):
-		Logger.info("PluginPlaylist", "Plugin playlist:")
-		Logger.info("PluginPlaylist", "  Ordering=%s, Cycling=%s" % (self.get_order_mode(), self.get_cycle_mode()))
+		self.logger.info("Plugin playlist:")
+		self.logger.info("  Ordering=%s, Cycling=%s" % (self.get_order_mode(), self.get_cycle_mode()))
 		for entry in self.playlist:
-			Logger.info("PluginPlaylist", "  %s, duration=%d" % (entry['name'], entry['duration']))
+			self.logger.info("  %s, duration=%d" % (entry['name'], entry['duration']))
 

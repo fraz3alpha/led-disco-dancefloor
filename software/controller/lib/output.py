@@ -7,7 +7,7 @@ import pygame
 # For counting instances of output classes
 from itertools import count
 
-from logging import Logger
+import logging
 
 class Output(object):
 
@@ -32,6 +32,9 @@ class GuiOutput(Output):
 	#  current state of the dance floor. This will be useful 
 	#  when developing new plugins, and means we don't need to
 	#  run a separate dance floor emulation process all the time
+
+	logger = logging.getLogger(__name__)
+
 	def __init__(self):
 		super(GuiOutput,self).__init__()
 	
@@ -111,7 +114,7 @@ class GuiOutput(Output):
 		return None
 
 	def playlist_model_changed_event(self):
-		Logger.info("GuiOutput", "Notified of change in the playlist model!")
+		self.logger.info("Notified of change in the playlist model!")
 		#self.redraw()
 		return None
 
@@ -333,6 +336,8 @@ class GuiOutput(Output):
 
 class SerialOutput(Output):
 	
+	logger = logging.getLogger(__name__)
+
 	def __init__(self, config):
 		super(SerialOutput,self).__init__()
 		self.converter = None
@@ -350,9 +355,9 @@ class SerialOutput(Output):
 			self.baud = config["baud"]
 		if ("timeout" in config):
 			self.timeout = config["timeout"]
-		Logger.info("SerialOutput", "Creating serial port with tty=%s, baud=%s, timeout=%s" % (self.tty, self.baud, self.timeout))
+		self.logger.info("Creating serial port with tty=%s, baud=%s, timeout=%s" % (self.tty, self.baud, self.timeout))
 		self.serial_port = serial.Serial(self.tty, self.baud, timeout=self.timeout)
-		Logger.info("SerialOutput", "Hello, my name is %s" % self.name)
+		self.logger.info("Hello, my name is %s" % self.name)
 
 	def set_output_converter(self, converter):
 		# The converter will be used to pick the 
@@ -443,6 +448,9 @@ class SerialOutput(Output):
 
 
 class PipeOutput(Output):
+
+	logger = logging.getLogger(__name__)
+
 	# This is similar, if not identical to the SerialOutput
 	#  class as it's intended use is for replicating the 
 	#  physical dancefloor in software

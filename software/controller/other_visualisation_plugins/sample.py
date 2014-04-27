@@ -7,6 +7,8 @@ from DDRPi import FloorCanvas
 
 class SampleVisualisationPlugin(VisualisationPlugin):
 
+	logger = logging.getLogger(__name__)
+
 	def __init__(self):
 		self.clock = pygame.time.Clock()
 

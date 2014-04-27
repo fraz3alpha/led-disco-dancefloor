@@ -1,8 +1,11 @@
 __authors__ = ['Andrew Taylor']
 
-from logging import Logger
+import logging
 
 class FloorCanvas(object):
+
+	logger = logging.getLogger(__name__)
+
 	# The floor canvas is a large array which we can draw on to
 	# It provides a number of  methods that you would expect for 
 	#  a canvas object, including shapes, painting pixels etc..
@@ -23,7 +26,7 @@ class FloorCanvas(object):
 		self.height = 0
 		if (height > 0):
 			self.height = height
-		Logger.info("FloorCanvas", "Creating a canvas with width=%d, height=%d" % (width, height))
+		self.logger.info("Creating a canvas with width=%d, height=%d" % (width, height))
 		# Create the two dimensional array for the canvas object
 		self.data = [[self.BLACK for y in range(height)] for x in range(width)]
 
@@ -101,7 +104,7 @@ class FloorCanvas(object):
 		if (from_x == to_x and from_y == to_y):
 			self.set_pixel(int(from_x), int(from_y))
 			return None
-		#Logger.verbose("FloorCanvas", "(%d,%d) > (%d,%d)" % (from_x, from_y, to_x, to_y))
+		#self.logger.verbose("(%d,%d) > (%d,%d)" % (from_x, from_y, to_x, to_y))
 		if (abs(from_x - to_x) > abs(from_y - to_y)):
 			# Make sure that to_x is >= from_x so that the range()
 			#  works properly
@@ -113,9 +116,9 @@ class FloorCanvas(object):
 				temp = to_y
 				to_y = from_y
 				from_y = temp
-			#Logger.verbose("FloorCanvas", "Going from x=%d to x=%d" % (from_x, to_x))
+			#self.logger.verbose("Going from x=%d to x=%d" % (from_x, to_x))
 			gradient = float(to_y - from_y) / float(to_x - from_x)
-			#Logger.verbose("FloorCanvas", "Gradient=%f, c=%d" % (gradient, from_y))
+			#self.logger.verbose("Gradient=%f, c=%d" % (gradient, from_y))
 			for x in range(to_x - from_x + 1):
 				y = gradient * float(x) + from_y
 				self.set_pixel(int(x + from_x), int(y), colour)
@@ -130,7 +133,7 @@ class FloorCanvas(object):
 				temp = to_y
 				to_y = from_y
 				from_y = temp
-			#Logger.verbose("FloorCanvas", "Going from y=%d to y=%d" % (from_y, to_y))
+			#self.logger.verbose("Going from y=%d to y=%d" % (from_y, to_y))
 			gradient = float(to_x - from_x) / float(to_y - from_y)
 			for y in range(to_y - from_y + 1):
 				x = gradient * float(y) + from_x

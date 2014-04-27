@@ -6,13 +6,15 @@ import colorsys
 import math
 
 from DDRPi import FloorCanvas
-from lib.logging import Logger
+import logging
 
 class WavyBlobVisualisationPlugin(VisualisationPlugin):
 
+	logger = logging.getLogger(__name__)
+
 	def __init__(self):
 		self.clock = pygame.time.Clock()
-		Logger.info("WavyBlobPlugin", "Initialising WavyBlobVisualisationPlugin")
+		self.logger.info("WavyBlobPlugin", "Initialising WavyBlobVisualisationPlugin")
 
 	def draw_frame(self, canvas):
 		# Limit the frame rate.

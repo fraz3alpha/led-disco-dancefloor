@@ -1,8 +1,11 @@
 __authors__ = ['Joel Wright']
 
-from logging import Logger
+import logging
 
 class DisplayLayout(object):
+
+	logger = logging.getLogger(__name__)
+
 	def __init__(self, config):
 		#super(DisplayLayout, self).__init__()
 		self.load_config(config)
@@ -35,7 +38,7 @@ class DisplayLayout(object):
 		for y in range(pos_y, pos_y + height):
 			for x in range(pos_x, pos_x + width):
 				if self.layout_mapping[x][y] is not None:
-					Logger.error("Layout", "The config appears to contain overlapping tiles")
+					self.logger.error("The config appears to contain overlapping tiles")
 				self.layout_mapping[x][y] = self.pixel_count
 				self.pixel_count += 1
 					
@@ -43,7 +46,7 @@ class DisplayLayout(object):
 		for x in range(pos_x, pos_x + height):
 			for y in reversed(range(pos_y, pos_y + width)):
 				if self.layout_mapping[x][y] is not None:
-					Logger.error("Layout", "The config appears to contain overlapping tiles")
+					self.logger.error("The config appears to contain overlapping tiles")
 				self.layout_mapping[x][y] = self.pixel_count
 				self.pixel_count += 1
 					
@@ -51,7 +54,7 @@ class DisplayLayout(object):
 		for y in reversed(range(pos_y, pos_y + height)):
 			for x in reversed(range(pos_x, pos_x + width)):
 				if self.layout_mapping[x][y] is not None:
-					Logger.error("Layout", "The config appears to contain overlapping tiles")
+					self.logger.error("The config appears to contain overlapping tiles")
 				self.layout_mapping[x][y] = self.pixel_count
 				self.pixel_count += 1
 		return True
@@ -60,7 +63,7 @@ class DisplayLayout(object):
 		for x in reversed(range(pos_x, pos_x + height)):
 			for y in range(pos_y, pos_y + width):
 				if self.layout_mapping[x][y] is not None:
-					Logger.error("Layout", "The config appears to contain overlapping tiles")
+					self.logger.error("The config appears to contain overlapping tiles")
 				self.layout_mapping[x][y] = self.pixel_count
 				self.pixel_count += 1
 		return True
@@ -103,7 +106,7 @@ class DisplayLayout(object):
 				              module_data["x_position"],
 				              module_data["y_position"])
 			else:
-				Logger.error("Layout", "The orientation of a tile in the config was not recognised")	 
+				self.logger.error("The orientation of a tile in the config was not recognised")	 
 				
 	def calculate_floor_size(self):
 		"""
