@@ -1,4 +1,0 @@
-PyYAML==3.10
-pygame==1.9.1release
-pyserial==2.6
-
