@@ -7,6 +7,8 @@ import pygame
 # For counting instances of output classes
 from itertools import count
 
+
+
 class Output(object):
 
 	_ids = count(0)
@@ -245,38 +247,38 @@ class GuiOutput(Output):
 		#centre_y = 400
 
 		# Draw the controller body
-		pygame.draw.circle(drawable, controller_colour, (centre_x - circle_centre_x,centre_y), circle_radius, 0)
-		pygame.draw.circle(drawable, controller_colour, (centre_x + circle_centre_x,centre_y), circle_radius, 0)
+		pygame.draw.circle(drawable, controller_colour, (int(centre_x - circle_centre_x),centre_y), int(circle_radius), 0)
+		pygame.draw.circle(drawable, controller_colour, (int(centre_x + circle_centre_x),centre_y), int(circle_radius), 0)
 
 		pygame.draw.rect(drawable, 
 				controller_colour, 
-				(centre_x - circle_centre_x,
-				centre_y - (controller_height/2), 
-				controller_width - controller_height, 
-				controller_waist), 
+				(int(centre_x - circle_centre_x),
+				int(centre_y - (controller_height/2)), 
+				int(controller_width - controller_height), 
+				int(controller_waist)), 
 				0)
 
-		pygame.draw.circle(drawable, lighter_controller_colour, (centre_x - circle_centre_x,centre_y), int(d_pad_diameter/2*1.4), 0)
+		pygame.draw.circle(drawable, lighter_controller_colour, (int(centre_x - circle_centre_x),centre_y), int(d_pad_diameter/2.0*1.4), 0)
 
 		# Draw the coloured buttons (becoming brighter when pressed)
-		pygame.draw.circle(drawable, x_colour_pressed, (centre_x + circle_centre_x, centre_y-(x_to_b/2)), controller_button_radius, 0)
-		pygame.draw.circle(drawable, b_colour_pressed, (centre_x + circle_centre_x, centre_y+(x_to_b/2)), controller_button_radius, 0)
-		pygame.draw.circle(drawable, y_colour_pressed, (centre_x + circle_centre_x-(y_to_a/2), centre_y), controller_button_radius, 0)
-		pygame.draw.circle(drawable, a_colour_pressed, (centre_x + circle_centre_x+(y_to_a/2), centre_y), controller_button_radius, 0)
+		pygame.draw.circle(drawable, x_colour_pressed, (int(centre_x + circle_centre_x), int(centre_y-(x_to_b/2))), controller_button_radius, 0)
+		pygame.draw.circle(drawable, b_colour_pressed, (int(centre_x + circle_centre_x), int(centre_y+(x_to_b/2))), controller_button_radius, 0)
+		pygame.draw.circle(drawable, y_colour_pressed, (int(centre_x + circle_centre_x-(y_to_a/2)), int(centre_y)), controller_button_radius, 0)
+		pygame.draw.circle(drawable, a_colour_pressed, (int(centre_x + circle_centre_x+(y_to_a/2)), int(centre_y)), controller_button_radius, 0)
 
 		# Draw the dpad
 		pygame.draw.rect(drawable,
 				d_pad_unpressed,
-				(centre_x - circle_centre_x - d_pad_button_width/2,
-				centre_y - d_pad_diameter/2,
+				(int(centre_x - circle_centre_x - d_pad_button_width/2.0),
+				int(centre_y - d_pad_diameter/2.0),
 				d_pad_button_width,
 				d_pad_diameter),
 				0)
 
 		pygame.draw.rect(drawable,
 				d_pad_unpressed,
-				(centre_x - circle_centre_x - d_pad_diameter/2,
-				centre_y - d_pad_button_width/2,
+				(int(centre_x - circle_centre_x - d_pad_diameter/2.0),
+				int(centre_y - d_pad_button_width/2.0),
 				d_pad_diameter,
 				d_pad_button_width),
 				0)
