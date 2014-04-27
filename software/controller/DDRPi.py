@@ -509,7 +509,7 @@ class DDRPiMaster():
 
 		# Add in select other commandline arguments into the system section of the config file
 		config_file_data['arg'] = dict()
-		for key, value in vars(args).iteritems():
+		for key, value in vars(args).items():
 			if (value is not None):
 				if (key in self.list_known_system_args()):
 					config_file_data['system'][key] = value
