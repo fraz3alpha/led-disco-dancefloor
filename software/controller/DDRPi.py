@@ -162,7 +162,7 @@ class DDRPiMaster():
 			try:
 				self.run_ddrpi()
 			except Exception as e:
-				Logger.error("DDRPi", "%s" % e)		
+				self.logger.error("DDRPi", "%s" % e)		
 
 	"""
 	If the framework needs to handle an event it is done here.
@@ -204,7 +204,7 @@ class DDRPiMaster():
 		#  been sent down the serial port. We can test the data
 		#  packing this way.
 		if ("outputs" in config):
-			for output_number, details in config["outputs"].iteritems():
+			for output_number, details in config["outputs"].items():
 				self.logger.info("%d - %s" % (output_number, details))
 				if "enabled" in details:
 					if details["enabled"] is False:
