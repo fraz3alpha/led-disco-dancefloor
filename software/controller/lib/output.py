@@ -14,7 +14,7 @@ class Output(object):
 	_ids = count(0)
 
 	def __init__(self):
-		self.set_name("%s-%d" % (self.__class__.__name__,self._ids.next()))
+		self.set_name("%s-%d" % (self.__class__.__name__,next(self._ids)))
 		pass
 
 	def set_name(self, name):
