@@ -1,0 +1,5 @@
+To start the controller code run `python DDRPi.py`
+
+To start it in test mode with no floor attached and no need to sort out a config file run with '--testmode'
+
+To run with a specific plugin for testing/development purposes, specify it with --plugin, e.g. : --plugin=HlsTestVisualisationPlugin
