@@ -1,5 +1,7 @@
 __authors__ = ['Andrew Taylor']
 
+from text import TextWriter
+
 import logging
 
 class FloorCanvas(object):
@@ -38,6 +40,8 @@ class FloorCanvas(object):
 
 	# See if the given pixel is on the canvas, and not off the side somewhere
 	def is_in_range(self, x, y):
+		if x < 0 or y < 0:
+			return False
 		if x >= self.width:
 			return False
 		if y >= self.height:
@@ -144,5 +148,16 @@ class FloorCanvas(object):
 		for x in range(self.width):
 			for y in range(self.height):
 				self.data[x][y] = colour
+
+	# Text methods:
+	def draw_text(self, text, colour, x_pos, y_pos):
+		# Returns the text size as a (width, height) tuple for reference
+		text_size = TextWriter.draw_text(self, text, colour, x_pos, y_pos)
+		return text_size
+
+	def get_text_size(self, text):
+		# Returns the text size as a (width, height) tuple for reference,
+		#  but doesn't actually draw anything because it doesn't pass a surface through
+		return TextWriter.draw_text(None, text, (0,0,0), 0, 0)
 
 
