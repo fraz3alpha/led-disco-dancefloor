@@ -6,7 +6,7 @@ import serial
 import pygame
 # For counting instances of output classes
 from itertools import count
-
+import os
 import logging
 
 class Output(object):
@@ -369,30 +369,13 @@ class GuiOutput(Output):
 	def clear(self):
 		pass
 
-class SerialOutput(Output):
+class FormattedByteOutput(Output):
 	
 	logger = logging.getLogger(__name__)
 
-	def __init__(self, config):
-		super(SerialOutput,self).__init__()
+	def __init__ (self):
+		self.logger.info("__init__ for FormattedByteOutput")
 		self.converter = None
-		# Open specified serial port with the correct
-		#  parameters
-		self.open_serial_port(config)
-	
-	def open_serial_port(self, config):
-		self.tty = None
-		self.baud = None
-		self.timeout = 1
-		if ("tty" in config):
-			self.tty = config["tty"]
-		if ("baud" in config):
-			self.baud = config["baud"]
-		if ("timeout" in config):
-			self.timeout = config["timeout"]
-		self.logger.info("Creating serial port with tty=%s, baud=%s, timeout=%s" % (self.tty, self.baud, self.timeout))
-		self.serial_port = serial.Serial(self.tty, self.baud, timeout=self.timeout)
-		self.logger.info("Hello, my name is %s" % self.name)
 
 	def set_output_converter(self, converter):
 		# The converter will be used to pick the 
@@ -406,13 +389,7 @@ class SerialOutput(Output):
 		self.converter = converter
 		pass
 
-	def send_data(self, canvas):
-		# Write data to the serial port, terminate it
-		#  with 0x01 to instigate a buffer flip.
-		# Coerce 0xFF down to 0xFE to ensure that long 
-		#  sequences of '1' bits aren't sent that might
-		#  throw out the receivers 
-
+	def format_data (self, canvas):
 		# First we need to convert the canvas into a buffer
 		#  containing the bytes in the right order
 
@@ -435,14 +412,12 @@ class SerialOutput(Output):
 		else:
 			# Iterate over the converter, picking up the right
 			#  pixels in the right order
-			for (x,y) in self.converter:
+			for x_y in self.converter:
+				(x,y) = x_y
 				rgb = canvas_array[x][y]
 				output_string += self.form_pixel_data(rgb)
 
-		# Add the sync pulse
-		output_string += chr(1)
-		# Send all the data
-		self.serial_port.write(output_string)
+		return output_string
 
 	def form_pixel_data(self, rgb):
 
@@ -477,23 +452,76 @@ class SerialOutput(Output):
 		output_string += chr(blue)
 		
 		return output_string
+
+class SerialOutput(FormattedByteOutput):
+	
+
+	def __init__(self, config):
+		logger = logging.getLogger(__name__)
+		super(SerialOutput,self).__init__()
+		# Open specified serial port with the correct
+		#  parameters
+		self.open_serial_port(config)
+	
+	def open_serial_port(self, config):
+		self.tty = None
+		self.baud = None
+		self.timeout = 1
+		if ("tty" in config):
+			self.tty = config["tty"]
+		if ("baud" in config):
+			self.baud = config["baud"]
+		if ("timeout" in config):
+			self.timeout = config["timeout"]
+		self.logger.info("Creating serial port with tty=%s, baud=%s, timeout=%s" % (self.tty, self.baud, self.timeout))
+		self.serial_port = serial.Serial(self.tty, self.baud, timeout=self.timeout)
+		self.logger.info("Hello, my name is %s" % self.name)
+
+	def send_data(self, canvas):
+		
+		formatted_data = self.format_data(canvas)
+
+		# Add the sync pulse
+		formatted_data += chr(1)
+		# Send all the data
+		self.serial_port.write(formatted_data)
 	
 	def clear(self):
 		pass
 
 
-class PipeOutput(Output):
-
-	logger = logging.getLogger(__name__)
+class PipeOutput(FormattedByteOutput):
 
 	# This is similar, if not identical to the SerialOutput
 	#  class as it's intended use is for replicating the 
 	#  physical dancefloor in software
-	def __init__(self):
-		super(GuiOutput,self).__init__()
+	def __init__(self, config):
+		self.logger = logging.getLogger(self.__class__.__name__)
+		self.logger.info("__init__ for PipeOutput")
+		super(PipeOutput,self).__init__()
 
-	def send_data(self,data_buffer):
-		pass
+		self.pipe = None
+		if "pipe" in config:
+			pipe_name = config["pipe"]
+			if os.path.exists(pipe_name):
+				self.pipe = open(pipe_name,'w')
+			else:
+				self.logger.error("Output pipe not available - %s" % pipe_name)
+
+	def send_data(self, canvas):
+		formatted_data = self.format_data(canvas)
+		if self.pipe is not None:
+			s = ""
+			# Take every character in the string and convert it to a hex value
+			for i in formatted_data:
+				v = hex(ord(i))[2:]
+				if len(v) < 2:
+					s += "'\\x0%s'" % v
+				else:
+					s += "'\\x%s'" % v
+			self.pipe.write("%s\n" % s)
+		else:
+			self.logger.warn("Pipe not available, unable to send data")
 
 	def clear(self):
 		pass

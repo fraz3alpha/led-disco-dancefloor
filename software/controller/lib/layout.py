@@ -27,6 +27,22 @@ class DisplayLayout(object):
 				s += "%04s " % self.layout_mapping[x][y]
 			s += "\n"
 		return s
+
+	"""
+	Return an ordered list of (x,y) coordinates
+	Outputing data in this order will be correct for the defined dance floor	
+	"""
+	def get_converter(self):
+		order = dict()
+		for y in range(0,self.size_y):
+			for x in range(0,self.size_x):
+				order[self.layout_mapping[x][y]] = (x,y)
+
+		ordered_list = []
+		for pixel in sorted(order):
+			ordered_list.append(order[pixel])
+
+		return ordered_list
 		
 	def get_position(self, x, y):
 		if x < 0 or y < 0 or x >= self.size_x or y >= self.size_y:

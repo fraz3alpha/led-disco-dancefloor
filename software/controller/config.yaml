@@ -20,6 +20,12 @@ outputs:
     type: gui
     enabled: True
 
+  3:
+    name: dancefloor pipe
+    type: pipe
+    pipe: /tmp/dance_pipe
+    enabled: False
+
 # Module layout config (we may change this later)
 modules:
   3:

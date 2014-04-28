@@ -96,7 +96,7 @@ import inspect
 # Dance Floor library classes
 from lib.layout import DisplayLayout
 from lib.floorcanvas import FloorCanvas
-from lib.output import GuiOutput, SerialOutput
+from lib.output import GuiOutput, SerialOutput, PipeOutput
 from lib.playlist import PluginPlaylistModel
 from lib.controllers import ControllerInput
 
@@ -198,8 +198,13 @@ class DDRPiMaster():
 		output_devices = []
 		input_adapters = []
 
+		# Parse the floor layout
+		layout = DisplayLayout(config["modules"])
+		(floor_x, floor_y) = layout.calculate_floor_size()
+		converter = layout.get_converter()
+		
 		# Create a suitably sized canvas for the given config
-		canvas = self.create_floor_canvas(config)
+		canvas = FloorCanvas(floor_x, floor_y)
 
 		# Set up the various outputs defined in the config.
 		# Known types are the moment are "gui" and "serial".
@@ -229,6 +234,11 @@ class DDRPiMaster():
 					gui_output = GuiOutput()
 					output_devices.append(gui_output)
 					self.gui = gui_output
+				elif details["type"] == "pipe":
+					self.logger.info("Creating a PipeOutput class")
+					pipe_output = PipeOutput(details)
+					pipe_output.set_output_converter(converter)
+					output_devices.append(pipe_output)
 				else:
 					self.logger.warn("I don't know how to handle an output of type '%s'" % (details["type"]))
 
@@ -359,6 +369,10 @@ class DDRPiMaster():
 		layout = DisplayLayout(config["modules"])
 		# Calculate the extremes of the floor
 		(floor_x, floor_y) = layout.calculate_floor_size()
+
+		print layout.draw_layout()
+
+		print layout.get_converter()
 
 		# Create a canvas. This has a number of primitive drawing methods to help
 		#  plugins draw what they want. 
