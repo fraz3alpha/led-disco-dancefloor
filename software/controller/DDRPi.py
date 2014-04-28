@@ -286,11 +286,15 @@ class DDRPiMaster():
 		# Check for pygame events, primarily coming from
 		#  gamepads and the keyboard
 		
-		while True:
+		running = True
+		while running:
 		
 			current_plugin = playlistModel.get_current_plugin()
 
 			for e in pygame.event.get():
+
+				if e.type == pygame.QUIT:
+					running = False
 
 				e = self.controller_mapper.map_event(e)
 
@@ -335,6 +339,9 @@ class DDRPiMaster():
 			if display_frame is not None:
 				for output_device in output_devices:
 					output_device.send_data(display_frame)
+
+		pygame.quit()
+		exit()
 
 	"""
 	The dancefloor canvas is defined by the set of modules that makes up the floor
