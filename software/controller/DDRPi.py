@@ -98,6 +98,7 @@ from lib.layout import DisplayLayout
 from lib.floorcanvas import FloorCanvas
 from lib.output import GuiOutput, SerialOutput
 from lib.playlist import PluginPlaylistModel
+from lib.controllers import ControllerInput
 
 import logging
 
@@ -171,6 +172,9 @@ class DDRPiMaster():
 	 should take place
 	"""
 	def handle_event(self, e):
+		if self.gui is not None:
+			# See if the gui wants to do something with it
+			return self.gui.handle_event(e)
 		return e
 
 	"""
@@ -271,6 +275,9 @@ class DDRPiMaster():
 			#playlistModel.add_model_changed_listener(self.gui)
 			self.gui.set_playlist_model(playlistModel)
 			
+	
+		# Create an object that can map key events to joystick events
+		self.controller_mapper = ControllerInput()
 
 		# The main loop is an event loop, with each part 
 		#  non-blocking and yields after doing a short bit.
@@ -284,6 +291,9 @@ class DDRPiMaster():
 			current_plugin = playlistModel.get_current_plugin()
 
 			for e in pygame.event.get():
+
+				e = self.controller_mapper.map_event(e)
+
 				# Each consumer should return None if the
 				#  event has been consumed, or return
 				#  the event if something else should

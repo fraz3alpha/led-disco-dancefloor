@@ -45,6 +45,22 @@ class GuiOutput(Output):
 
 		self.gui = pygame.display.set_mode((400, 800))
 		pygame.display.set_caption('DDRPi Gui Display')
+	
+		self.pressed_buttons = dict()
+
+	def handle_event(self, event):
+		if event.type in [pygame.JOYBUTTONDOWN, pygame.JOYBUTTONUP]:
+			joypad = event.joy
+			if joypad not in self.pressed_buttons:
+				self.pressed_buttons[joypad] = dict()
+			if event.type == pygame.JOYBUTTONDOWN:
+				self.pressed_buttons[joypad][event.button] = True
+			if event.type == pygame.JOYBUTTONUP:
+				self.pressed_buttons[joypad][event.button] = False
+	
+			self.logger.info("Currently pressed buttons: %s" % self.pressed_buttons)
+
+		return event
 
 	def get_nearest_cell(self, canvas, x, y):
 		fractional_position = self.get_fractional_position(canvas, x,y)
@@ -202,13 +218,13 @@ class GuiOutput(Output):
 		drawable.blit(text, (400 - size_width - padding,800 - size_height - padding))
 
 	def draw_controllers(self, drawable):
-		self.draw_controller(drawable, (200-100,400))
-		self.draw_controller(drawable, (200+100,400))
+		self.draw_controller(drawable, (200-100,400), 0)
+		self.draw_controller(drawable, (200+100,400), 1)
 
 		return None
 
 	#def draw_controller(self, drawable, (x,y), (width,height)):
-	def draw_controller(self, drawable, centre):
+	def draw_controller(self, drawable, centre, controller_number):
 
 		# Draw a SNES controller, with feedback as to whether
 		#  buttons are being pressed or not
@@ -238,11 +254,30 @@ class GuiOutput(Output):
 		# A light gray
 		controller_colour = (0xB0,0xB0,0xB0)
 		lighter_controller_colour = (0xC0,0xC0,0xC0)
+		d_pad_unpressed = (0x00,0x00,0x00)
+
 		x_colour_pressed = (0x00,0x00,0xFF)
 		y_colour_pressed = (0x00,0xFF,0x00)
 		a_colour_pressed = (0xFF,0x00,0x00)
 		b_colour_pressed = (0xFF,0xFF,0x00)
-		d_pad_unpressed = (0x00,0x00,0x00)
+
+		x_colour_unpressed = (0x80,0x80,0xD0)
+		y_colour_unpressed = (0x00,0xD0,0x00)
+		a_colour_unpressed = (0xD0,0x00,0x00)
+		b_colour_unpressed = (0xD0,0xD0,0x00)
+
+		x_colour = x_colour_unpressed
+		if (controller_number in self.pressed_buttons and 0 in self.pressed_buttons[controller_number] and self.pressed_buttons[controller_number][0] == True):
+			x_colour = x_colour_pressed
+		y_colour = y_colour_unpressed
+		if (controller_number in self.pressed_buttons and 3 in self.pressed_buttons[controller_number] and self.pressed_buttons[controller_number][3] == True):
+			y_colour = y_colour_pressed
+		a_colour = a_colour_unpressed		
+		if (controller_number in self.pressed_buttons and 1 in self.pressed_buttons[controller_number] and self.pressed_buttons[controller_number][1] == True):
+			a_colour = a_colour_pressed
+		b_colour = b_colour_unpressed
+		if (controller_number in self.pressed_buttons and 2 in self.pressed_buttons[controller_number] and self.pressed_buttons[controller_number][2] == True):
+			b_colour = b_colour_pressed
 
 		#centre_x = 200
 		#centre_y = 400
@@ -262,10 +297,10 @@ class GuiOutput(Output):
 		pygame.draw.circle(drawable, lighter_controller_colour, (int(centre_x - circle_centre_x),centre_y), int(d_pad_diameter/2.0*1.4), 0)
 
 		# Draw the coloured buttons (becoming brighter when pressed)
-		pygame.draw.circle(drawable, x_colour_pressed, (int(centre_x + circle_centre_x), int(centre_y-(x_to_b/2))), controller_button_radius, 0)
-		pygame.draw.circle(drawable, b_colour_pressed, (int(centre_x + circle_centre_x), int(centre_y+(x_to_b/2))), controller_button_radius, 0)
-		pygame.draw.circle(drawable, y_colour_pressed, (int(centre_x + circle_centre_x-(y_to_a/2)), int(centre_y)), controller_button_radius, 0)
-		pygame.draw.circle(drawable, a_colour_pressed, (int(centre_x + circle_centre_x+(y_to_a/2)), int(centre_y)), controller_button_radius, 0)
+		pygame.draw.circle(drawable, x_colour, (int(centre_x + circle_centre_x), int(centre_y-(x_to_b/2))), controller_button_radius, 0)
+		pygame.draw.circle(drawable, b_colour, (int(centre_x + circle_centre_x), int(centre_y+(x_to_b/2))), controller_button_radius, 0)
+		pygame.draw.circle(drawable, y_colour, (int(centre_x + circle_centre_x-(y_to_a/2)), int(centre_y)), controller_button_radius, 0)
+		pygame.draw.circle(drawable, a_colour, (int(centre_x + circle_centre_x+(y_to_a/2)), int(centre_y)), controller_button_radius, 0)
 
 		# Draw the dpad
 		pygame.draw.rect(drawable,

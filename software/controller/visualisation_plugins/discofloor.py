@@ -51,7 +51,7 @@ class DiscoFloorVisualisationPlugin(VisualisationPlugin):
 	def __init__ (self):
 		self.clock = pygame.time.Clock()
 
-	def handle(self, event):
+	def handle_event(self, event):
 		"""
 		Handle the pygame event sent to the plugin from the main loop
 		"""
@@ -81,6 +81,7 @@ class DiscoFloorVisualisationPlugin(VisualisationPlugin):
 					if (button == "X"):
 						if (self.fps < self.max_fps):
 							self.fps += 1
+
 		except Exception as ex:
 			print ex
 			self.logger.error("ColourCycleExtraLargePlugin: %s" % ex)
