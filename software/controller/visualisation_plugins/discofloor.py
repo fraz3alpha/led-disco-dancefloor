@@ -50,6 +50,9 @@ class DiscoFloorVisualisationPlugin(VisualisationPlugin):
 
 	def __init__ (self):
 		self.clock = pygame.time.Clock()
+		self.current_colours = None
+		self.last_beat = 0
+		self.colour_selection = self.all_floor_colours
 
 	def handle_event(self, event):
 		"""
@@ -72,9 +75,9 @@ class DiscoFloorVisualisationPlugin(VisualisationPlugin):
 							self.square_size += 1
 
 					if (button == "A"):
-						self.colour_selection = 1
+						self.colour_selection = self.all_floor_colours
 					if (button == "B"):
-						self.colour_selection = 2
+						self.colour_selection = self.primary_floor_colours
 					if (button == "Y"):
 						if (self.fps > 1):
 							self.fps -= 1
@@ -87,6 +90,14 @@ class DiscoFloorVisualisationPlugin(VisualisationPlugin):
 			self.logger.error("ColourCycleExtraLargePlugin: %s" % ex)
 
 		return None
+
+	def regenerate_colours(self, colour_set, size):
+
+		colours = []
+		for i in range(size):
+			new_colour = self.__colours__[colour_set[random.randint(0,len(colour_set)-1)]]
+			colours.append(new_colour)
+		return colours
 		
 	def draw_frame(self, canvas):
 		"""
@@ -96,24 +107,25 @@ class DiscoFloorVisualisationPlugin(VisualisationPlugin):
 		w = canvas.get_width()
 		h = canvas.get_height()
 
-		colours = dict(self.__colours__)
-		del colours["black"]
+		# Regenerate the colours on each beat.
+		current_beat = pygame.time.get_ticks() // (1000 / self.fps)
+		if current_beat != self.last_beat or self.current_colours is None:
+			self.logger.info("Beat: %d" % current_beat)
+			self.current_colours = self.regenerate_colours(self.colour_selection, int(w*h))
+		self.last_beat = current_beat
 
-		for x in range(0,int(math.ceil(w/float(self.square_size)))):
-			for y in range(0,int(math.ceil(h/float(self.square_size)))):
-				# Don't include black
-				colour = self.__colours__["white"]
-				if (self.colour_selection == 1):
-					colour = self.all_floor_colours[random.randint(0,len(self.all_floor_colours)-1)]
-				if (self.colour_selection == 2):
-					colour = self.primary_floor_colours[random.randint(0,len(self.primary_floor_colours)-1)]
-				for xx in range(0,self.square_size):
-					for yy in range(0,self.square_size):
-						canvas.set_pixel_tuple((x*self.square_size)+xx,(y*self.square_size)+yy, colours[colour])
+		# The maximum number of squares (rounded up) displayable on each side
+		x_squares = math.ceil(w // float(self.square_size))
+		y_squares = math.ceil(h // float(self.square_size))
 
-		# Rate limit it to 2 fps, nice and slow
-		self.clock.tick(self.fps)
+		for x in range(w):
+			for y in range(h):
+				row = (x // self.square_size )
+				column = (y // self.square_size)
+				index = int(row * y_squares + column)
+				canvas.set_pixel_tuple(x,y, self.current_colours[index])
 
+		self.clock.tick(25)
 		return canvas
 
 	def draw_splash(self, canvas):
