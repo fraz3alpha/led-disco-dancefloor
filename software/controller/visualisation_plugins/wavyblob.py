@@ -14,7 +14,11 @@ class WavyBlobVisualisationPlugin(VisualisationPlugin):
 
 	def __init__(self):
 		self.clock = pygame.time.Clock()
-		self.logger.info("WavyBlobPlugin", "Initialising WavyBlobVisualisationPlugin")
+		self.logger.info("Initialising WavyBlobVisualisationPlugin")
+
+	def configure(self, config):
+		self.config = config
+		self.logger.info("Config: %s" % config)
 
 	def draw_frame(self, canvas):
 		# Limit the frame rate.

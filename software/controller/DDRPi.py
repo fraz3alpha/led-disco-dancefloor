@@ -272,10 +272,18 @@ class DDRPiMaster():
 				#  person using it should know what they are doing, so if it isn't available
 				#  for whatever reason, exit.
 				exit()
+		elif "playlist" in config["system"]:
+			playlist = config["system"]["playlist"]
+			# Make the playlist an absolute path if it isn't already
+			if (not os.path.isabs(playlist)):
+				root_directory = os.path.dirname(os.path.realpath(__file__))
+				playlist = os.path.join(root_directory, playlist)
+			# Load the playlist
+			playlistModel.load_playlist(available_plugins, playlist)
 		else:
 			# Else, iterate over the available ones and add them all, each lasting 5s
 			for class_name in available_plugins:
-					attr = dict(name=class_name, duration=5000, obj=available_plugins[class_name])
+					attr = dict(name=class_name, duration=5, obj=available_plugins[class_name])
 					playlistModel.add_plugin(attr)
 
 		# Print the current playlist
@@ -507,6 +515,7 @@ class DDRPiMaster():
 		parser.add_argument('--headless', required=False, dest='headless', default=None, help='Don\'t bring up a GUI', action="store_true")
 		# --plugin defines a single plugin to be used, helpful in development and testing
 		parser.add_argument('--plugin', required=False, dest='plugin', default=None, help='The classname of the one plugin to use')
+		parser.add_argument('--playlist', required=False, dest='playlist', default=None, help='A playlist to use')
 		args, unknown = parser.parse_known_args()
 		self.logger.info("Just the --config argument:")
 		self.logger.info("%s"% args)
@@ -603,11 +612,11 @@ class DDRPiMaster():
 		args = list()
 		args.append("headless")
 		args.append("plugin")
+		args.append("playlist")
 		return args;
 
 # GO GO GO!
-
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger.info("Loading DDRPi")
 ddrpi = DDRPiMaster()
 ddrpi.run()

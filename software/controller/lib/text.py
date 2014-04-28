@@ -116,7 +116,10 @@ class TextWriter():
 			for x in range(0, len(text_buffer)):
 				for y in range(0, len(text_buffer[x])):
 					if (text_buffer[x][y] == 1):
-						surface.set_pixel_tuple(x+x_pos,y+y_pos, colour)
+						if type(colour) == tuple:
+							surface.set_pixel_tuple(x+x_pos,y+y_pos, colour)
+						else:
+							surface.set_pixel(x+x_pos,y+y_pos, colour)
 
 		return (width, height)
 

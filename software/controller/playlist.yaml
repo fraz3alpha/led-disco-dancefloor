@@ -1,0 +1,41 @@
+plugins:
+  -
+    name: WavyBlobVisualisationPlugin
+    duration: 10
+
+  -
+    name: SpeedingBlobsVisualisationPlugin
+    duration: 15
+
+  -
+    name: DiscoFloorVisualisationPlugin
+    duration: 15
+    size: 2
+    fps: 2
+    colour_set: secondary
+
+  -
+    name: ScrollingTextVisualisationPlugin
+    duration: 10
+    text: Congratulations
+    speed: 20
+    background_colour: black
+    colour: red
+
+  -
+    name: SineWaveVisualisationPlugin
+    duration: 5
+    background_colour: red
+    colour: white
+    amplitude: 8.0
+
+  -
+    name: SineWaveVisualisationPlugin
+    duration: 5
+    background_colour: green
+    colour: blue
+    period: 18.0
+    amplitude: 5.0
+
+
+

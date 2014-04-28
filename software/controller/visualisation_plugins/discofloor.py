@@ -54,6 +54,25 @@ class DiscoFloorVisualisationPlugin(VisualisationPlugin):
 		self.last_beat = 0
 		self.colour_selection = self.all_floor_colours
 
+	def configure(self, config):
+		self.config = config
+		self.logger.info("Config: %s" % config)
+
+		# Get the fps
+		self.fps = 2.0
+		try:
+			self.fps = float(self.config["fps"])
+		except (ValueError, KeyError):
+			pass	
+
+		# Get the square size
+		self.square_size = 2
+		try:
+			self.square_size = int(self.config["size"])
+		except (ValueError, KeyError):
+			pass	
+	
+
 	def handle_event(self, event):
 		"""
 		Handle the pygame event sent to the plugin from the main loop
@@ -86,7 +105,7 @@ class DiscoFloorVisualisationPlugin(VisualisationPlugin):
 							self.fps += 1
 
 		except Exception as ex:
-			print ex
+			print (ex)
 			self.logger.error("ColourCycleExtraLargePlugin: %s" % ex)
 
 		return None
@@ -110,7 +129,7 @@ class DiscoFloorVisualisationPlugin(VisualisationPlugin):
 		# Regenerate the colours on each beat.
 		current_beat = pygame.time.get_ticks() // (1000 / self.fps)
 		if current_beat != self.last_beat or self.current_colours is None:
-			self.logger.info("Beat: %d" % current_beat)
+			#self.logger.info("Beat: %d" % current_beat)
 			self.current_colours = self.regenerate_colours(self.colour_selection, int(w*h))
 		self.last_beat = current_beat
 

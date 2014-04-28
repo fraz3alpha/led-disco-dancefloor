@@ -78,7 +78,7 @@ def hexToTuple(hex_colour):
 	if hex_colour[0] == '#':
 		hex_colour = hex_colour[1:]
 	if len(hex_colour) != 6:
-		raise ValueError, "input #%s is not in #RRGGBB format" % hex_colour
+		raise ValueError("input #%s is not in #RRGGBB format" % hex_colour)
 	(rs,gs,bs) = hex_colour[:2], hex_colour[2:4], hex_colour[4:]
 	r = int(rs, 16)
 	g = int(gs, 16)
@@ -240,7 +240,7 @@ class PatternsVisualisationPlugin(VisualisationPlugin):
 		script_directory = os.path.dirname(os.path.realpath(__file__))
 		self.plugin_resource_directory = os.path.join(script_directory, DEFAULT_PLUGIN_RESOURCE_DIRECTORY)
 
-	def configure(self):
+	def configure(self, config):
 		self.__beatService = BeatService()
 		self.__patternIndex = -1
 		self.__nextPatternTime = 0

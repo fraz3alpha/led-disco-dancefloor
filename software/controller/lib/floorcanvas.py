@@ -1,6 +1,6 @@
 __authors__ = ['Andrew Taylor']
 
-from text import TextWriter
+from lib.text import TextWriter
 
 import logging
 

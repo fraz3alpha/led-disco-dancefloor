@@ -23,6 +23,10 @@ class SpeedingBlobsVisualisationPlugin(VisualisationPlugin):
 
 	blob_speeds = [500]
 
+	def configure(self, config):
+		self.config = config
+		self.logger.info("Config: %s" % config)
+
 	def new_random_blob(self, canvas):
 		blob_entry = {}
 		# Random Speed, ms/pixel
@@ -103,11 +107,9 @@ class SpeedingBlobsVisualisationPlugin(VisualisationPlugin):
 		for i in self.speed_blobs:
 			self.logger.info("blobs: %s" % i)
 
-	def configure(self):
-		"""
-		This is an example of an end user module - need to make sure we can get
-		the main image surface and config to write to them both...
-		"""
+	def configure(self, config):
+		self.config = config
+		self.logger.info("Config: %s" % config)
 		self.clock = pygame.time.Clock()
 		
 	

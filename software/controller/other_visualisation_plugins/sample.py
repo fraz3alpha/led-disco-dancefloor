@@ -13,9 +13,10 @@ class SampleVisualisationPlugin(VisualisationPlugin):
 		self.clock = pygame.time.Clock()
 
 	# Nothing specific to be done before this starts, although we could 
-	#  set self.clock here.
-	def configure(self):
-		pass
+	#  set self.clock here. Stash any config so we can use it later
+	def configure(self, config):
+		self.config = config
+		self.logger.info("Config: %s" % config)
 
 	# This will just keep running, nothing specific to do for start(), stop(),
 	#  pause() or resume()

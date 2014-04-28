@@ -2,6 +2,8 @@ __authors__ = ['Andrew Taylor']
 
 # For the timing features
 import pygame
+import os
+import yaml
 
 import logging
 
@@ -66,7 +68,7 @@ class PluginPlaylistModel(object):
 			still_valid = True
 			current_time = pygame.time.get_ticks()
 			start_time = self.current_plugin['start_time']
-			duration = self.current_plugin['duration']
+			duration = self.current_plugin['duration'] * 1000
 			# If there is only one plugin, just leave it running
 			if len(self.playlist) == 1:
 				still_valid = True
@@ -107,7 +109,7 @@ class PluginPlaylistModel(object):
 		new_plugin_object = current_plugin['obj']
 		# Create the plugin object
 		current_plugin['instance'] = new_plugin_object()
-		current_plugin['instance'].configure()
+		current_plugin['instance'].configure(current_plugin)
 
 		# Set the start time
 		current_plugin['start_time'] = pygame.time.get_ticks()	
@@ -127,7 +129,7 @@ class PluginPlaylistModel(object):
 	def get_current_plugin_remaining_time(self):
 		current_time = pygame.time.get_ticks()
 		start_time = self.current_plugin['start_time']
-		duration = self.current_plugin['duration']
+		duration = self.current_plugin['duration']*1000
 	
 		remaining_time = duration - (current_time - start_time)
 
@@ -192,4 +194,44 @@ class PluginPlaylistModel(object):
 		self.logger.info("  Ordering=%s, Cycling=%s" % (self.get_order_mode(), self.get_cycle_mode()))
 		for entry in self.playlist:
 			self.logger.info("  %s, duration=%d" % (entry['name'], entry['duration']))
+
+	def load_playlist(self, available_plugins, playlist_file):
+		if not os.path.exists(playlist_file):
+			self.logger.error("Unable to load playlist, it doesn't exist: %s" % playlist_file)
+			return None
+		f = open(playlist_file)
+		data = yaml.load(f)
+		f.close()
+
+		if data is None:
+			self.logger.error("Unable to parse playlist: %s" % playlist_file)
+
+		self.new_playlist()
+		
+		if "plugins" in data:
+			playlist_entries = data["plugins"]
+			for details in playlist_entries:
+				self.logger.info("Playlist entry: %s" % (details))
+				if "name" not in details:
+					# We need the name, else we can't do anything!
+					self.logger.warn("Missing name for entry : %s" % (details))
+					continue
+				plugin_name = details["name"]
+				# Add the class object to the details, provided we have it
+				if plugin_name not in available_plugins:
+					self.logger.warn("Unable to locate %s in available plugins" % plugin_name)
+					continue
+				details["obj"] = available_plugins[plugin_name]
+				self.logger.info("Adding plugin to playlist: %s" % details)
+				self.add_plugin(details)
+
+
+
+
+
+
+
+
+
+
 

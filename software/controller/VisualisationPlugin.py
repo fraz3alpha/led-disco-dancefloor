@@ -7,7 +7,7 @@ class VisualisationPlugin(object):
 	"""
 	Called just before starting a plugin
 	"""
-	def configure(self):
+	def configure(self, config):
 		self.logger.warn("This plugin doesn't have a configure() method")
 
 	"""

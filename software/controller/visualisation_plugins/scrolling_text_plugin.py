@@ -14,11 +14,13 @@ class ScrollingTextVisualisationPlugin(VisualisationPlugin):
 	logger = logging.getLogger(__name__)
 
 	start_tick = -1
-	# ms per pixel of scrolling
-	scroll_speed = 100
 
 	def __init__ (self):
 		self.clock = pygame.time.Clock()
+
+	def configure(self, config):
+		self.config = config
+		self.logger.info("Config: %s" % config)
 
 	def start(self):
 		"""
@@ -41,27 +43,55 @@ class ScrollingTextVisualisationPlugin(VisualisationPlugin):
 		w = canvas.get_width()
 		h = canvas.get_height()
 
-		text = "TEST"
+		text = "<test>"
+		try:
+			text = "%s" % self.config["text"]
+		except (ValueError, KeyError):
+			pass
 
-		text_size = canvas.get_text_size("Test")
+		# Get the colour
+		colour = FloorCanvas.RED
+		try:
+			colour = getattr(FloorCanvas, self.config["colour"].upper())
+		except (AttributeError, KeyError):
+			pass
+
+		# Get the background colour
+		background_colour = FloorCanvas.GREEN
+		try:
+			background_colour = getattr(FloorCanvas, self.config["background_colour"].upper())
+		except (AttributeError, KeyError):
+			pass
+
+		# Set the background colour
+		canvas.set_colour(background_colour)
+
+		# Get the speed
+		speed = 10.0
+		try:
+			speed = float(self.config["speed"])
+		except (ValueError, KeyError):
+			pass
+
+		scroll_speed = 1000.0 / speed
+
+		text_size = canvas.get_text_size(text)
 		text_width = text_size[0]
 		text_height = text_size[1]
-
-		canvas.set_colour(FloorCanvas.BLACK)
 
 		# Total time to traverse the screen = 
 		#  (border right + border left + surface width + text width in pixels) * time per pixel
 		offscreen_buffer = 5
-		time_on_screen = (offscreen_buffer * 2 + text_width + w) * self.scroll_speed
+		time_on_screen = (offscreen_buffer * 2 + text_width + w) * scroll_speed
 
 		# Work out what fraction of the duration we are the way through this, based on when we started
 		position_delta = t % time_on_screen
 		# The text starts at $offscreen_buffer + w (off the right edge), and then scrolls left
-		x_position = int(w + offscreen_buffer - position_delta / self.scroll_speed)
+		x_position = int(w + offscreen_buffer - position_delta / scroll_speed)
 
 		y_position = int((h - text_height) / 2)
 
-		canvas.draw_text("Test", (0xFF,0,0), x_position, y_position)
+		canvas.draw_text(text, colour, x_position, y_position)
 
 		# Limit the frame rate
 		self.clock.tick(25)
