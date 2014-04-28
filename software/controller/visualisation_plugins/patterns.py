@@ -29,7 +29,7 @@ class Pattern(object):
 		self.logger.info("Loading %s" % patternFile)
 		with open(patternFile) as csvFile:
 			reader = csv.reader(csvFile)
-			patternMeta = reader.next()
+			patternMeta = next(reader)
 			height = int(patternMeta[1])
 			framesPerBeat = int(patternMeta[2])
 			
@@ -39,7 +39,7 @@ class Pattern(object):
 				#convert to float representation
 				rows.append([hexToFloatTuple(colour) for colour in row])
 				
-		self.frames = [rows[i * height : (i+1) * height] for i in range(0, len(rows) / height)]
+		self.frames = [rows[i * height : (i+1) * height] for i in range(0, len(rows) // height)]
 		self.beatsPerFrame = 1 / float(framesPerBeat)
 	
 # This is just the way that the frames are combined.
