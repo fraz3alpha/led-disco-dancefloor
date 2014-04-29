@@ -361,32 +361,6 @@ class DDRPiMaster():
 		pygame.quit()
 		exit()
 
-	"""
-	The dancefloor canvas is defined by the set of modules that makes up the floor
-
-	The layout also caculates the correct mapping of how to order the data when sent 
-	 to the floor itself. However, the in-memory model of the floor is one of a canvas
-	 which is a rectangle with a size encompassing the extremes of the configured floor.
-	 It is possible, therefore, that some pixels will not be visible, and currently there
-	 is no way to note which these are.
-	"""
-	def create_floor_canvas(self, config):
-
-		# Create a layout object, which parses the defined modules, and creates
-		#  a representation of this configuration
-		layout = DisplayLayout(config["modules"])
-		# Calculate the extremes of the floor
-		(floor_x, floor_y) = layout.calculate_floor_size()
-
-		print layout.draw_layout()
-
-		print layout.get_converter()
-
-		# Create a canvas. This has a number of primitive drawing methods to help
-		#  plugins draw what they want. 
-		canvas = FloorCanvas(floor_x, floor_y)
-		return canvas
-
 	def print_input_event(self, e):
 		self.logger.info("%s" %e)
 
