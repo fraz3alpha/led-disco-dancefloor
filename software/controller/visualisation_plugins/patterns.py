@@ -388,7 +388,12 @@ class PatternsVisualisationPlugin(VisualisationPlugin):
 	
 	@staticmethod
 	def apply(filters, zero):
-		return reduce(lambda x, y: y.process(x), filters, zero)
+	
+		result = zero
+		for new_filter in filters:
+			result = new_filter.process(result)
+		return result
+		#return reduce(lambda x, y: y.process(x), filters, zero)
 	
 	def __getActivePattern(self):
 		tim = time.time()
