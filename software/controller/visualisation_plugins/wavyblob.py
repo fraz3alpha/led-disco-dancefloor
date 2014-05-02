@@ -28,6 +28,9 @@ class WavyBlobVisualisationPlugin(VisualisationPlugin):
 		# Draw whatever this plugin does
 		return self.draw_surface(canvas, pygame.time.get_ticks())
 
+	def draw_splash(self, canvas):
+		return self.draw_surface(canvas, 0)
+
 	def draw_surface(self,canvas):
 		return self.draw_surface(canvas, 0)
 
