@@ -98,5 +98,18 @@ class ScrollingTextVisualisationPlugin(VisualisationPlugin):
 		return canvas
 		
 	def draw_splash (self, canvas):
+		canvas.set_colour(FloorCanvas.BLACK)
+
+		text = "Hi"
+		colour = FloorCanvas.RED
+		(text_width, text_height) = canvas.get_text_size(text)
+
+		w = canvas.get_width()
+		h = canvas.get_height()
+
+		x_position = int(w/2.0 - text_width/2.0)
+		y_position = int(h/2.0 - text_height/2.0)
+		canvas.draw_text(text, colour, x_position, y_position)
+
 		return canvas
 
