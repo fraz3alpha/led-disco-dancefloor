@@ -57,14 +57,14 @@ class SineWaveVisualisationPlugin(VisualisationPlugin):
 		amplitude = 5.0
 		try:
 			amplitude = float(self.config["amplitude"])
-		except (ValueError, KeyError):
+		except (AttributeError, ValueError, KeyError):
 			pass
 
 		# Get the period
 		period = 18.0
 		try:
 			period = float(self.config["period"])
-		except (ValueError, KeyError):
+		except (AttributeError, ValueError, KeyError):
 			pass
 
 		phase_offset = 0.0
