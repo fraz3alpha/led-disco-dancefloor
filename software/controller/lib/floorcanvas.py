@@ -19,6 +19,9 @@ class FloorCanvas(object):
 	RED   = 0xFF0000
 	GREEN = 0x00FF00
 	BLUE  = 0x0000FF
+	YELLOW= 0xFFFF00
+	MAGENTA=0xFF00FF
+	CYAN=0x00FFFF
 
 	# Constructor to set up the size and initial colour
 	def __init__(self, width=0, height=0, colour=BLACK):
@@ -60,10 +63,15 @@ class FloorCanvas(object):
 
 	# Set a pixel with an int value
 	def set_pixel(self, x, y, colour):
+		# If the colour is a tuple and not an int,
+		#  unpack it into an int
+		if type(colour) is tuple:
+			colour = self.pack_colour_tuple(colour)
 		if self.is_in_range(x,y):
 			self.data[x][y] = colour
 
 	# Set a pixel with an tuple value
+	# Deprecated, set_pixel now takes either an int or tuple
 	def set_pixel_tuple(self, x, y, colour):
 		if self.is_in_range(x,y):
 			self.data[x][y] = self.pack_colour_tuple(colour)
@@ -99,6 +107,11 @@ class FloorCanvas(object):
 
 	def pack_colour_tuple(self, colour):
 		(red, green, blue) = colour
+		# Ensure the values are ints
+		red = int(red)
+		green = int(green)
+		blue = int(blue)
+
 		value = (red << 16) + (green << 8) + blue
 		return value
 
@@ -145,6 +158,8 @@ class FloorCanvas(object):
 
 	# Set the entire canvas to a single colour
 	def set_colour(self, colour):
+		if type(colour) is tuple:
+			colour = self.pack_colour_tuple(colour)
 		for x in range(self.width):
 			for y in range(self.height):
 				self.data[x][y] = colour
