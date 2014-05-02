@@ -58,6 +58,9 @@ class DiscoFloorVisualisationPlugin(VisualisationPlugin):
 		self.config = config
 		self.logger.info("Config: %s" % config)
 
+		# Seed the random function with the current time
+		random.seed()
+
 		# Get the fps
 		self.fps = 2.0
 		try:
@@ -133,18 +136,27 @@ class DiscoFloorVisualisationPlugin(VisualisationPlugin):
 			self.current_colours = self.regenerate_colours(self.colour_selection, int(w*h))
 		self.last_beat = current_beat
 
+		self.draw_floor(canvas, self.current_colours, self.square_size)
+
+		self.clock.tick(25)
+		return canvas
+
+	def draw_floor(self, canvas, colours, square_size):
+
+		w = canvas.get_width()
+		h = canvas.get_height()
+
 		# The maximum number of squares (rounded up) displayable on each side
-		x_squares = math.ceil(w // float(self.square_size))
-		y_squares = math.ceil(h // float(self.square_size))
+		x_squares = math.ceil(w // float(square_size))
+		y_squares = math.ceil(h // float(square_size))
 
 		for x in range(w):
 			for y in range(h):
-				row = (x // self.square_size )
-				column = (y // self.square_size)
+				row = (x // square_size )
+				column = (y // square_size)
 				index = int(row * y_squares + column)
-				canvas.set_pixel_tuple(x,y, self.current_colours[index])
+				canvas.set_pixel_tuple(x,y, colours[index])
 
-		self.clock.tick(25)
 		return canvas
 
 	def draw_splash(self, canvas):
@@ -154,13 +166,12 @@ class DiscoFloorVisualisationPlugin(VisualisationPlugin):
 		w = canvas.get_width()
 		h = canvas.get_height()
 
-		colours = dict(self.__colours__)
-		del colours["black"]
-		
-		for x in range(0,w):
-			for y in range(0,h):
-				colour = colours.keys()[random.randint(1,len(colours)-1)]
-				canvas.set_pixel_tuple(x,y, colours[colour])
+		# Use a defined seed
+		random.seed(0)
+
+		colours = self.regenerate_colours(self.all_floor_colours, int(w*h))
+
+		self.draw_floor(canvas, colours, 2)
 
 		return canvas
 
