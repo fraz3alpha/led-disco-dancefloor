@@ -225,6 +225,7 @@ class DDRPiMaster():
 					self.logger.info("Creating a SerialOutput class")
 					serial_output = SerialOutput(details)
 					serial_output.set_name("SerialOutput-#%d" % output_number)
+					serial_output.set_output_converter(converter)
 					output_devices.append(serial_output)
 				elif details["type"] == "gui":
 					# Skip the gui if headless has been specified
