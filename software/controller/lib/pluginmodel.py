@@ -179,6 +179,11 @@ class PluginPlaylist(object):
 		self.logger.info("Creating playlist #%d", self.playlist_number)
 		self._reset_playlist_state()
 
+		if self.playlist_type == self.ALL:
+			self.auto_advance = False
+		else:
+			self.auto_advance = True
+
 		self.total_pause_time = 0
 		self.previous_pause_time = None
 		pass
@@ -208,15 +213,16 @@ class PluginPlaylist(object):
 
 		current_plugin = self.plugins[self.current_position]
 
-		# If the plugin has run its duration, then move to the next one,
-		#TODO: Add in code to check for the playlist being paused
-		if self.state == "RUNNING":
-			plugin_duration = current_plugin.get_duration()
-			plugin_duration_so_far = pygame.time.get_ticks() - self.current_plugin_start_time
+		if self.auto_advance == True:
+			# If the plugin has run its duration, then move to the next one,
+			#TODO: Add in code to check for the playlist being paused
+			if self.state == "RUNNING":
+				plugin_duration = current_plugin.get_duration()
+				plugin_duration_so_far = pygame.time.get_ticks() - self.current_plugin_start_time
 
-			if plugin_duration_so_far > plugin_duration:
-				self.logger.info("Plugin has exceeded intended duration")	
-				current_plugin = self.next()
+				if plugin_duration_so_far > plugin_duration:
+					self.logger.info("Plugin has exceeded intended duration")	
+					current_plugin = self.next()
 
 		return current_plugin
 		
