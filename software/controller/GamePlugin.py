@@ -1,6 +1,6 @@
 import logging
 
-class VisualisationPlugin(object):
+class GamePlugin(object):
 
 	logger = logging.getLogger(__name__)
 

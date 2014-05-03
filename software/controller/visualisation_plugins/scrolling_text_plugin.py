@@ -18,7 +18,7 @@ class ScrollingTextVisualisationPlugin(VisualisationPlugin):
 	def __init__ (self):
 		self.clock = pygame.time.Clock()
 
-	def configure(self, config):
+	def configure(self, config=None):
 		self.config = config
 		self.logger.info("Config: %s" % config)
 
@@ -44,34 +44,37 @@ class ScrollingTextVisualisationPlugin(VisualisationPlugin):
 		h = canvas.get_height()
 
 		text = "<test>"
-		try:
-			text = "%s" % self.config["text"]
-		except (ValueError, KeyError):
-			pass
-
-		# Get the colour
 		colour = FloorCanvas.RED
-		try:
-			colour = getattr(FloorCanvas, self.config["colour"].upper())
-		except (AttributeError, KeyError):
-			pass
-
-		# Get the background colour
 		background_colour = FloorCanvas.GREEN
-		try:
-			background_colour = getattr(FloorCanvas, self.config["background_colour"].upper())
-		except (AttributeError, KeyError):
-			pass
+		speed = 10.0
+
+		if self.config is not None:
+			try:
+				text = "%s" % self.config["text"]
+			except (ValueError, KeyError):
+				pass
+
+			# Get the colour
+			try:
+				colour = getattr(FloorCanvas, self.config["colour"].upper())
+			except (AttributeError, KeyError):
+				pass
+
+			# Get the background colour
+			try:
+				background_colour = getattr(FloorCanvas, self.config["background_colour"].upper())
+			except (AttributeError, KeyError):
+				pass
+
+
+			# Get the speed
+			try:
+				speed = float(self.config["speed"])
+			except (ValueError, KeyError):
+				pass
 
 		# Set the background colour
 		canvas.set_colour(background_colour)
-
-		# Get the speed
-		speed = 10.0
-		try:
-			speed = float(self.config["speed"])
-		except (ValueError, KeyError):
-			pass
 
 		scroll_speed = 1000.0 / speed
 

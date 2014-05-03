@@ -99,6 +99,8 @@ from lib.floorcanvas import FloorCanvas
 from lib.output import GuiOutput, SerialOutput, PipeOutput
 from lib.playlist import PluginPlaylistModel
 from lib.controllers import ControllerInput
+from lib.menu import Menu
+from lib.pluginmodel import PluginModel
 
 import logging
 
@@ -140,6 +142,7 @@ class DDRPiMaster():
 
 	def _initial_setup(self):
 		self.gui = None
+		self.clock = pygame.time.Clock()
 		pass
 
 	"""
@@ -206,12 +209,11 @@ class DDRPiMaster():
 		# Create a suitably sized canvas for the given config
 		canvas = FloorCanvas(floor_x, floor_y)
 
+		# Create a menu object to handle user input
+		menu = Menu()
+
 		# Set up the various outputs defined in the config.
-		# Known types are the moment are "gui" and "serial".
-		# TODO: Add in FIFO buffer type, which we can hook up 
-		#  an 'external' consumer of the data that would have 
-		#  been sent down the serial port. We can test the data
-		#  packing this way.
+		# Known types are the moment are "gui", "serial" and "pipe"
 		if ("outputs" in config):
 			for output_number, details in config["outputs"].items():
 				self.logger.info("%d - %s" % (output_number, details))
@@ -249,21 +251,41 @@ class DDRPiMaster():
 		# There can be many plugin directories, and can either be relative (from the directory in which this
 		#  script resides), or absolute. All directories are scanned, and the plugins found are added to the 
 		#  master list. If there are duplicate class names, the last one encountered probably wins silently.
-		visualisation_plugin_dirs = ["visualisation_plugins"]
+		visualisation_plugin_dirs = ["visualisation_plugins", "game_plugins"]
 
 		# We will store a dict of classname > class object in here
 		available_plugins = self.load_plugins(visualisation_plugin_dirs)
 
-		# Everything now is a playlist
-		playlistModel = PluginPlaylistModel()
+		# Add all the available plugins to the menu
+		#menu.add_available_plugins(available_plugins)
+
+		# Create a data model that we can use here, and pass to the
+		#  menu class to change what is active
+		# We should also be able to provide this model to a webservice
+		#  class if we chose to add in HTTP control of the floor too
+		plugin_model = PluginModel()
+
+		# Populate the data model
+		plugin_model.add_plugins(available_plugins)
+
+		# Link it up to the menu
+		menu.set_plugin_model(plugin_model)
+
+
+#		# Everything now is a playlist
+#		playlistModel = PluginPlaylistModel()
 
 		# If we have defined a specific plugin to run indefinitely on the command line, use that
+		specific_plugin = False
 		if "plugin" in config["system"]:
 			only_plugin = config["system"]["plugin"]
-			if only_plugin in available_plugins:
-				plugin_attr = dict(name=only_plugin, duration=5000, obj=available_plugins[only_plugin])
-				playlistModel.add_plugin(plugin_attr)
-				self.logger.info("Added requested plugin: %s" % (only_plugin))
+			if plugin_model.set_current_plugin(only_plugin) is not None:
+				self.logger.info("Running requested plugin %s" % only_plugin)
+				specific_plugin = True
+#			if only_plugin in available_plugins:
+#				plugin_attr = dict(name=only_plugin, duration=5000, obj=available_plugins[only_plugin])
+#				playlistModel.add_plugin(plugin_attr)
+#				self.logger.info("Added requested plugin: %s" % (only_plugin))
 			else:
 				self.logger.info("Unable to find requested plugin: %s" % (only_plugin))
 				self.logger.info("Available plugins are:")
@@ -273,26 +295,36 @@ class DDRPiMaster():
 				#  person using it should know what they are doing, so if it isn't available
 				#  for whatever reason, exit.
 				exit()
-		elif "playlist" in config["system"]:
+		if "playlist" in config["system"]:
+			#TODO: When there is no specific plugin specified, start the first playlist
+			
 			playlist = config["system"]["playlist"]
 			# Make the playlist an absolute path if it isn't already
 			if (not os.path.isabs(playlist)):
 				root_directory = os.path.dirname(os.path.realpath(__file__))
 				playlist = os.path.join(root_directory, playlist)
 			# Load the playlist
-			playlistModel.load_playlist(available_plugins, playlist)
-		else:
-			# Else, iterate over the available ones and add them all, each lasting 5s
-			for class_name in available_plugins:
-					attr = dict(name=class_name, duration=5, obj=available_plugins[class_name])
-					playlistModel.add_plugin(attr)
+			plugin_model.add_playlist_from_file(playlist)
+			plugin_model.set_current_playlist_by_index(1)
+#			playlistModel.load_playlist(available_plugins, playlist)
+#		else:
+#			# Else, iterate over the available ones and add them all, each lasting 5s
+#			for class_name in available_plugins:
+#					attr = dict(name=class_name, duration=5, obj=available_plugins[class_name])
+#					playlistModel.add_plugin(attr)
 
+		#TODO: When there is no plugin specified and no user playlists either, make the first
+		#       plugin active
+
+		print (plugin_model)
+#		exit(1)
 		# Print the current playlist
-		playlistModel.print_playlist()
-
+#		playlistModel.print_playlist()
+#
 		if self.gui is not None:
 			#playlistModel.add_model_changed_listener(self.gui)
-			self.gui.set_playlist_model(playlistModel)
+#			self.gui.set_playlist_model(playlistModel)
+			self.gui.set_plugin_model(plugin_model)
 			
 	
 		# Create an object that can map key events to joystick events
@@ -308,7 +340,10 @@ class DDRPiMaster():
 		running = True
 		while running:
 		
-			current_plugin = playlistModel.get_current_plugin()
+			current_playlist = plugin_model.get_current_playlist()
+			current_plugin = None
+			if current_playlist is not None:
+				current_plugin = current_playlist.get_current_plugin()
 
 			for e in pygame.event.get():
 
@@ -326,25 +361,35 @@ class DDRPiMaster():
 				#  consume this event. This includes heading
 				#  into menus, possibly modifying the plugin
 				#  model (previous/next plugin)
-				e = self.handle_event(e)
+				#e = self.handle_event(e)
+				#if e is None:
+				#	continue
+
+				# See if the menu wants to consume this event
+				e = menu.handle_event(e)
 				if e is None:
-					continue
+					 continue
+
 				self.print_input_event(e)
 
 				# Next pass it on to the current plugin, if
 				#  there is one
 				if current_plugin is not None:
-					e = current_plugin['instance'].handle_event(e)
+#					e = current_plugin['instance'].handle_event(e)
+					e = current_plugin.instance.handle_event(e)
 					if e is None:
 						continue
 
 			# Ask the framework if it thinks it is displaying something
-			display_frame = self.draw_frame(canvas)
+			# display_frame = self.draw_frame(canvas)
+			# Ask the menu if it wants to draw something
+			display_frame = menu.draw_frame(canvas)
 			if display_frame is None:
 				# If there is nothing to draw from the framework, ask
 				#  the current plugin to do something is there is one
 				if current_plugin is not None:
-					display_frame = current_plugin['instance'].draw_frame(canvas)
+#					display_frame = current_plugin['instance'].draw_frame(canvas)
+					display_frame = current_plugin.instance.draw_frame(canvas)
 				else:
 					# If there is no plugin, then the framework should
 					#  do something
@@ -355,9 +400,16 @@ class DDRPiMaster():
 			#        then the gui should be updated with a canvas, but the output
 			#        plugins need not be informed. The problem is that if the plugin
 			#        happens to never return anything, then the gui is never updated
-			if display_frame is not None:
-				for output_device in output_devices:
-					output_device.send_data(display_frame)
+			if display_frame is None:
+				canvas.set_colour((0,0,0))
+				display_frame = canvas
+
+			for output_device in output_devices:
+				output_device.send_data(display_frame)
+
+			# Limit the framerate, we need not do it in the plugins - they really shouldn't
+			#  mind that we are running at a max of 25fps
+			self.clock.tick(25)
 
 		pygame.quit()
 		exit()
@@ -443,7 +495,7 @@ class DDRPiMaster():
 						#  are defined in this module
 						for name, obj in inspect.getmembers(foo):
 							if inspect.isclass(obj):
-								if name.endswith("VisualisationPlugin") and obj.__module__ == 	module_name:
+								if name.endswith("Plugin") and obj.__module__ == module_name:
 									these_plugins[obj.__name__] = obj
 
 			# Print out a list of what plugins were loaded from each directory

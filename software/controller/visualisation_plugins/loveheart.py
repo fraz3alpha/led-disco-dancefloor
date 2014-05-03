@@ -23,16 +23,19 @@ class LoveHeartVisualisationPlugin(VisualisationPlugin):
 		self.pulse_last_ratio = 0
 
 		self.upper_name = ""
-		try:
-			self.upper_name = "%s" % self.config["upper_name"]
-		except (ValueError, KeyError):
-			pass
-
 		self.lower_name = ""
-		try:
-			self.lower_name = "%s" % self.config["lower_name"]
-		except (ValueError, KeyError):
-			pass
+
+		if config is not None:
+
+			try:
+				self.upper_name = "%s" % self.config["upper_name"]
+			except (ValueError, KeyError):
+				pass
+
+			try:
+				self.lower_name = "%s" % self.config["lower_name"]
+			except (ValueError, KeyError):
+				pass
 
 		self.logger.info("Config: %s" % config)
 

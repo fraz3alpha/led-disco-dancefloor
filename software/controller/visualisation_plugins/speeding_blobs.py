@@ -338,7 +338,7 @@ class SpeedingBlobsVisualisationPlugin(VisualisationPlugin):
 				hsv_colour[0] = 0.33 * ((math.sin(distance_away/3.0 - t_adjustment) + 1.0) / 2.0)
 
 				rgb_colour = self.reformat(colorsys.hsv_to_rgb(*hsv_colour))
-				canvas.draw_tuple_pixel(x,y,rgb_colour)
+				canvas.set_pixel_tuple(x,y,rgb_colour)
 
 		return canvas
 
@@ -346,4 +346,4 @@ class SpeedingBlobsVisualisationPlugin(VisualisationPlugin):
 		"""
 		Construct a splash screen suitable to display for a plugin selection menu
 		"""
-		return self.wavy_blob_t(0)
+		return self.wavy_blob_t(canvas, 0)

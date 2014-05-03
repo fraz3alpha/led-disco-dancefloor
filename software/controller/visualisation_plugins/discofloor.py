@@ -61,19 +61,21 @@ class DiscoFloorVisualisationPlugin(VisualisationPlugin):
 		# Seed the random function with the current time
 		random.seed()
 
-		# Get the fps
 		self.fps = 2.0
-		try:
-			self.fps = float(self.config["fps"])
-		except (ValueError, KeyError):
-			pass	
-
-		# Get the square size
 		self.square_size = 2
-		try:
-			self.square_size = int(self.config["size"])
-		except (ValueError, KeyError):
-			pass	
+
+		if config is not None:
+			# Get the fps
+			try:
+				self.fps = float(self.config["fps"])
+			except (ValueError, KeyError):
+				pass	
+
+			# Get the square size
+			try:
+				self.square_size = int(self.config["size"])
+			except (ValueError, KeyError):
+				pass	
 	
 
 	def handle_event(self, event):

@@ -38,7 +38,8 @@ class GuiOutput(Output):
 	def __init__(self):
 		super(GuiOutput,self).__init__()
 	
-		self.playlist_model = None
+#		self.playlist_model = None
+		self.plugin_model = None
 		self.clock = pygame.time.Clock()
 
 		# We assume that pygame has been initialised.
@@ -129,11 +130,13 @@ class GuiOutput(Output):
 		self.playlist_model = model
 		return None
 
-	def playlist_model_changed_event(self):
-		self.logger.info("Notified of change in the playlist model!")
-		#self.redraw()
-		return None
+	def set_plugin_model(self, model):
+		self.plugin_model = model
 
+#	def playlist_model_changed_event(self):
+#		self.logger.info("Notified of change in the playlist model!")
+#		#self.redraw()
+#		return None
 
 	def send_data(self, canvas):
 		self.canvas = canvas
@@ -166,37 +169,54 @@ class GuiOutput(Output):
 
 	def draw_visualisation_playlist_info(self, drawable):
 
-		if self.playlist_model is None:
-			return
+#		if self.playlist_model is None:
+		if self.plugin_model is None:
+			return drawable
 
-		current_plugin = self.playlist_model.get_current_plugin()["name"]
+		#current_plugin = self.playlist_model.get_current_plugin()["name"]
+		current_playlist = self.plugin_model.get_current_playlist()
 
-		font = pygame.font.Font(None, 24)
-		text = font.render(current_plugin, 1, (0xFF, 0xFF, 0xFF))
-		textpos = text.get_rect()
-		(size_width, size_height) = font.size(current_plugin)
-		drawable.blit(text, (200 - size_width/2,320 - size_height))
+		if current_playlist is None:
+			return 
+
+		current_plugin_info = None
+		current_plugin_name = None
+		if current_playlist is not None:
+			current_plugin_info = current_playlist.get_current_plugin_info()
+			current_plugin_name = current_plugin_info["name"]
+
+		if current_plugin_name is not None:
+			font = pygame.font.Font(None, 24)
+			text = font.render(current_plugin_name, 1, (0xFF, 0xFF, 0xFF))
+			textpos = text.get_rect()
+			(size_width, size_height) = font.size(current_plugin_name)
+			drawable.blit(text, (200 - size_width/2,320 - size_height))
 
 		# Draw how long is remaining for this plugin
 		# If this is the only plugin, and it is on loop, then it is going
 		#  to run for an indefinite amount of time
-		if (self.playlist_model.get_playlist_length() == 1 and 
-			self.playlist_model.get_cycle_mode() == "LOOP"):
-			remaining_time = ""
-		else:
-			remaining_time = "%d" % self.playlist_model.get_current_plugin_remaining_time()
+		remaining_time = "%d" % current_playlist.get_plugin_remaining_time()
+#		if (self.playlist_model.get_playlist_length() == 1 and 
+#			self.playlist_model.get_cycle_mode() == "LOOP"):
+#			remaining_time = ""
+#		else:
+#			remaining_time = "%d" % self.playlist_model.get_current_plugin_remaining_time()
 
 		text = font.render(remaining_time, 1, (0xFF, 0xFF, 0xFF))
 		textpos = text.get_rect()
 		(size_width, size_height) = font.size(remaining_time)
 		drawable.blit(text, (200 - size_width/2,350 - size_height))
 
-		playlist_length = self.playlist_model.get_playlist_length()
+#		playlist_length = self.playlist_model.get_playlist_length()
+		playlist_length = len(current_playlist)
 
-		playlist_entries = self.playlist_model.get_playlist()
-		playlist_index = self.playlist_model.get_current_plugin_index()
-		for index,entry in enumerate(playlist_entries):
-			playlist_entry_string = entry["name"]
+#		playlist_entries = self.playlist_model.get_playlist()
+#		playlist_index = self.playlist_model.get_current_plugin_index()
+		playlist_entries = current_playlist.get_plugins()
+		playlist_index = current_playlist.get_current_plugin_index()
+		for index, entry in enumerate(playlist_entries):
+#			playlist_entry_string = entry["name"]
+			playlist_entry_string = entry.plugin_name
 			font = pygame.font.Font(None, 24)
 			colour = (0xFF, 0xFF, 0xFF)
 			if (playlist_index == index):
@@ -403,7 +423,6 @@ class FormattedByteOutput(Output):
 			# It is highly likely this is not what you 
 			#  want, unless your output is only a single
 			#  module
-
 			for x in range(0,canvas.width):
 				for y in range(0,canvas.height):
 					rgb = canvas_array[x][y]
@@ -475,7 +494,6 @@ class SerialOutput(FormattedByteOutput):
 			self.timeout = config["timeout"]
 		self.logger.info("Creating serial port with tty=%s, baud=%s, timeout=%s" % (self.tty, self.baud, self.timeout))
 		self.serial_port = serial.Serial(self.tty, self.baud, timeout=self.timeout)
-		self.logger.info("Hello, my name is %s" % self.name)
 
 	def send_data(self, canvas):
 		

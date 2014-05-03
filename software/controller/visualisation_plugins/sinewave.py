@@ -38,34 +38,37 @@ class SineWaveVisualisationPlugin(VisualisationPlugin):
 
 		# Get the background colour
 		background_colour = FloorCanvas.GREEN
-		try:
-			background_colour = getattr(FloorCanvas, self.config["background_colour"].upper())
-		except (AttributeError, KeyError):
-			pass
+		wave_colour = FloorCanvas.WHITE
+		amplitude = 5.0
+		period = 18.0
+
+		if self.config is not None:
+			try:
+				background_colour = getattr(FloorCanvas, self.config["background_colour"].upper())
+			except (AttributeError, KeyError):
+				pass
+
+			# Get the wave colour
+			try:
+				wave_colour = getattr(FloorCanvas, self.config["colour"].upper())
+			except (AttributeError, KeyError):
+				pass
+
+			# Get the amplitude
+			try:
+				amplitude = float(self.config["amplitude"])
+			except (AttributeError, ValueError, KeyError):
+				pass
+
+			# Get the period
+			try:
+				period = float(self.config["period"])
+			except (AttributeError, ValueError, KeyError):
+				pass
+
 
 		# Set the background colour
 		canvas.set_colour(background_colour)
-
-		# Get the wave colour
-		wave_colour = FloorCanvas.WHITE
-		try:
-			wave_colour = getattr(FloorCanvas, self.config["colour"].upper())
-		except (AttributeError, KeyError):
-			pass
-
-		# Get the amplitude
-		amplitude = 5.0
-		try:
-			amplitude = float(self.config["amplitude"])
-		except (AttributeError, ValueError, KeyError):
-			pass
-
-		# Get the period
-		period = 18.0
-		try:
-			period = float(self.config["period"])
-		except (AttributeError, ValueError, KeyError):
-			pass
 
 		phase_offset = 0.0
 		frequency = 1.0
