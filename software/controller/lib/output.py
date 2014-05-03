@@ -169,11 +169,9 @@ class GuiOutput(Output):
 
 	def draw_visualisation_playlist_info(self, drawable):
 
-#		if self.playlist_model is None:
 		if self.plugin_model is None:
 			return drawable
 
-		#current_plugin = self.playlist_model.get_current_plugin()["name"]
 		current_playlist = self.plugin_model.get_current_playlist()
 
 		if current_playlist is None:
@@ -195,27 +193,19 @@ class GuiOutput(Output):
 		# Draw how long is remaining for this plugin
 		# If this is the only plugin, and it is on loop, then it is going
 		#  to run for an indefinite amount of time
-		remaining_time = "%d" % current_playlist.get_plugin_remaining_time()
-#		if (self.playlist_model.get_playlist_length() == 1 and 
-#			self.playlist_model.get_cycle_mode() == "LOOP"):
-#			remaining_time = ""
-#		else:
-#			remaining_time = "%d" % self.playlist_model.get_current_plugin_remaining_time()
+		if current_playlist.auto_advance is True:
+			remaining_time = "%d" % current_playlist.get_plugin_remaining_time()
 
-		text = font.render(remaining_time, 1, (0xFF, 0xFF, 0xFF))
-		textpos = text.get_rect()
-		(size_width, size_height) = font.size(remaining_time)
-		drawable.blit(text, (200 - size_width/2,350 - size_height))
+			text = font.render(remaining_time, 1, (0xFF, 0xFF, 0xFF))
+			textpos = text.get_rect()
+			(size_width, size_height) = font.size(remaining_time)
+			drawable.blit(text, (200 - size_width/2,350 - size_height))
 
-#		playlist_length = self.playlist_model.get_playlist_length()
 		playlist_length = len(current_playlist)
 
-#		playlist_entries = self.playlist_model.get_playlist()
-#		playlist_index = self.playlist_model.get_current_plugin_index()
 		playlist_entries = current_playlist.get_plugins()
 		playlist_index = current_playlist.get_current_plugin_index()
 		for index, entry in enumerate(playlist_entries):
-#			playlist_entry_string = entry["name"]
 			playlist_entry_string = entry.plugin_name
 			font = pygame.font.Font(None, 24)
 			colour = (0xFF, 0xFF, 0xFF)
