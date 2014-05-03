@@ -192,22 +192,28 @@ class Menu(object):
 				current_menu_playlist = playlists[self.current_menu_playlist_index]
 				current_menu_playlist.draw_splash(canvas)
 
+				# Blank 4 columns on either side
+				for x in range(4):
+					for y in range(5):
+						canvas.set_pixel(x,y, (0,0,0))
+						canvas.set_pixel(x+canvas.get_width()-4,y, (0,0,0))
+
 				# Overlay a set of arrows to indicate that there are other options
 				arrow_colour = (0xFF,0xFF,0)
 				# If there are elements to the left, then draw an arrow
 				if self.current_menu_playlist_index > 0:
+					canvas.set_pixel(2,1, arrow_colour)
 					canvas.set_pixel(2,2, arrow_colour)
 					canvas.set_pixel(2,3, arrow_colour)
-					canvas.set_pixel(2,4, arrow_colour)
-					canvas.set_pixel(1,3, arrow_colour)
+					canvas.set_pixel(1,2, arrow_colour)
 
 				# If there are elements to the right, then draw an arrow
 				if self.current_menu_playlist_index < len(playlists)-1:
 					w = canvas.get_width()
+					canvas.set_pixel(w-3,1, arrow_colour)
 					canvas.set_pixel(w-3,2, arrow_colour)
 					canvas.set_pixel(w-3,3, arrow_colour)
-					canvas.set_pixel(w-3,4, arrow_colour)
-					canvas.set_pixel(w-2,3, arrow_colour)
+					canvas.set_pixel(w-2,2, arrow_colour)
 
 				return canvas
 			else:
@@ -221,6 +227,31 @@ class Menu(object):
 				plugin = current_menu_playlist_plugins[self.current_menu_playlist_entry_index]
 			
 				canvas = plugin.draw_splash(canvas)
+
+				# Blank 4 columns on either side
+				for x in range(4):
+					for y in range(5):
+						canvas.set_pixel(x,y, (0,0,0))
+						canvas.set_pixel(x+canvas.get_width()-4,y, (0,0,0))
+
+				# Overlay a set of arrows to indicate that there are other options
+				arrow_colour = (0xFF,0xFF,0)
+				# If there are elements to the left, then draw an arrow
+				if self.current_menu_playlist_entry_index > 0:
+					canvas.set_pixel(2,1, arrow_colour)
+					canvas.set_pixel(2,2, arrow_colour)
+					canvas.set_pixel(2,3, arrow_colour)
+					canvas.set_pixel(1,2, arrow_colour)
+
+				# If there are elements to the right, then draw an arrow
+				if self.current_menu_playlist_entry_index < len(current_menu_playlist_plugins)-1:
+					w = canvas.get_width()
+					canvas.set_pixel(w-3,1, arrow_colour)
+					canvas.set_pixel(w-3,2, arrow_colour)
+					canvas.set_pixel(w-3,3, arrow_colour)
+					canvas.set_pixel(w-2,2, arrow_colour)
+					
+
 				return canvas
 	
 		return None
