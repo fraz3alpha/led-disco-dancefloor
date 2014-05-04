@@ -8,6 +8,7 @@ import pygame
 
 from DDRPi import FloorCanvas
 import logging
+import math
 
 import numpy
 import threading
@@ -16,6 +17,7 @@ import scipy
 import scipy.fftpack
 import scipy.io.wavfile
 import wave
+
 
 from lib.controllers import ControllerInput
 
@@ -72,7 +74,19 @@ class SoundToLightVisualisationPlugin(VisualisationPlugin):
 		return canvas
 
 	def draw_splash(self, canvas):
-		return self.draw_surface(canvas, 0)
+		canvas.set_colour((0,0,0))
+		w = canvas.get_width()
+		h = canvas.get_height()
+		# Draw something that looks vaguely like a EQ
+		for x in range(w):
+			# Two humps
+			height = h * 0.75 * math.cos(math.pi * float(x) / w) ** 2
+			# Decrease the humps
+			height *= math.cos((math.pi/2.0) * float(x) / w)
+			canvas.draw_line(x,h, x,(h-1)-int(height), (0xFF,0,0))
+
+
+		return canvas
 
 	def draw_surface(self,canvas):
 		return self.draw_surface(canvas, 0)

@@ -119,7 +119,7 @@ class FloorCanvas(object):
 		# Work out which direction has the most pixels
 		#  so that there are no gaps in the line
 		if (from_x == to_x and from_y == to_y):
-			self.set_pixel(int(from_x), int(from_y))
+			self.set_pixel(int(from_x), int(from_y), colour)
 			return None
 		#self.logger.verbose("(%d,%d) > (%d,%d)" % (from_x, from_y, to_x, to_y))
 		if (abs(from_x - to_x) > abs(from_y - to_y)):
