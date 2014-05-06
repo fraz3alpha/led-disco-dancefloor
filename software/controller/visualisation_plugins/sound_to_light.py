@@ -1,9 +1,6 @@
 
 from VisualisationPlugin import VisualisationPlugin
 
-# EQ code originally based on example here:
-#  http://www.raspberrypi.org/forums/viewtopic.php?t=35838&p=454041
-
 import pygame
 
 from DDRPi import FloorCanvas
@@ -39,9 +36,15 @@ class SoundToLightVisualisationPlugin(VisualisationPlugin):
 		self.modes = ["SCROLLING", "LATEST"]
 		self.mode = self.modes[1]
 
+		
+
+	def start(self):
+
 		t_rec=threading.Thread(target=self.record) # make thread for record()
 		t_rec.daemon=True # daemon mode forces thread to quit with program
 		t_rec.start() #launch thread
+
+			
 
 	def configure(self, config):
 		self.config = config
@@ -158,7 +161,7 @@ class SoundToLightVisualisationPlugin(VisualisationPlugin):
 						canvas.set_pixel(canvas.get_width() - block, canvas.get_height() - y, (0xFF, 0, 0))
 			
 
-			print "MIN:\t%s\tMAX:\t%s"%(min(self.data[-1]),max(self.data[-1]))
+			self.logger.info("MIN:\t%s\tMAX:\t%s"%(min(self.data[-1]),max(self.data[-1])))
 
 		self.clock.tick(25)
 		return canvas

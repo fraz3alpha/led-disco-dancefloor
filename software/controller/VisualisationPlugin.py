@@ -17,7 +17,7 @@ class VisualisationPlugin(object):
 	"""
 	def draw_frame(self, canvas):
 		self.logger.error("This plugin has failed to implement update_surface(canvas)")
-		return None
+		return canvas
 
 	"""
 	In some cases the plugin may be asked to display a splash screen, for example
@@ -28,7 +28,20 @@ class VisualisationPlugin(object):
 	"""
 	def draw_splash(self, canvas):
 		self.logger.warn("This plugin doesn't have a splash screen")
-		return None
+		canvas.set_colour((0,0,0))
+		text = "?"
+		colour = (0xFF,0,0)
+		(text_width, text_height) = canvas.get_text_size(text)
+
+		w = canvas.get_width()
+		h = canvas.get_height()
+
+		x_position = int(w/2.0 - text_width/2.0)
+		y_position = int(h/2.0 - text_height/2.0)
+		canvas.draw_text(text, colour, x_position, y_position)
+
+		return canvas
+
 
 	"""
 	If a plugin wants to consume a keyboard or controller input event,

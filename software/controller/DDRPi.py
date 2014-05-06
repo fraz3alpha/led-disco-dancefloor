@@ -389,7 +389,17 @@ class DDRPiMaster():
 				#  the current plugin to do something is there is one
 				if current_plugin is not None:
 #					display_frame = current_plugin['instance'].draw_frame(canvas)
-					display_frame = current_plugin.instance.draw_frame(canvas)
+					# There is every chance that the plugin might throw an 
+					#  exception as we have no control over the quality of
+					#  external code (or some in-house code!), so catch any
+					#  exception	
+					try:
+						display_frame = current_plugin.instance.draw_frame(canvas)
+					except:
+						self.logger.warn("Current plugin threw an error whilst running draw_frame()")
+						display_frame = self.draw_error(canvas)
+						
+						
 				else:
 					# If there is no plugin, then the framework should
 					#  do something
@@ -433,6 +443,21 @@ class DDRPiMaster():
 			self.logger.info("JoyButtonUp")
 
 		return None
+
+	def draw_error(self, canvas):
+		canvas.set_colour((0xFF,0,0))
+		text = "X"
+		colour = (0xFF,0xFF,0xFF)
+		(text_width, text_height) = canvas.get_text_size(text)
+
+		w = canvas.get_width()
+		h = canvas.get_height()
+
+		x_position = int(w/2.0 - text_width/2.0)
+		y_position = int(h/2.0 - text_height/2.0)
+		canvas.draw_text(text, colour, x_position, y_position)
+
+		return canvas
 
 	"""
 	Initialise all the connected joysticks/pads.

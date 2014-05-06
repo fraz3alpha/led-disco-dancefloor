@@ -340,7 +340,7 @@ class PluginPlaylist(object):
 				colour = even_colour
 			canvas.draw_line(6,4+i, canvas.get_width()-5,4+i, colour)
 		# Draw the playlist number at the bottom left
-		canvas.draw_text("%d" % self.playlist_number, (0xFF,0xFF,0xFF), 0, 11)
+		canvas.draw_text("%d" % self.playlist_number, (0xFF,0xFF,0xFF), 0, 10)
 		return canvas
 
 	def __str__(self):

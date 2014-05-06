@@ -4,6 +4,7 @@ from lib.floorcanvas import FloorCanvas
 from lib.controllers import ControllerInput
 
 import pygame
+import math
 import logging
 
 class Menu(object):
@@ -178,6 +179,36 @@ class Menu(object):
 	def get_current_plugin(self):
 		return "WavyBlobVisualisationPlugin"
 
+	def draw_error(self, canvas):
+		canvas.set_colour((0xFF,0,0))
+		text = "X"
+		colour = (0xFF,0xFF,0xFF)
+		(text_width, text_height) = canvas.get_text_size(text)
+
+		w = canvas.get_width()
+		h = canvas.get_height()
+
+		x_position = int(w/2.0 - text_width/2.0)
+		y_position = int(h/2.0 - text_height/2.0)
+		canvas.draw_text(text, colour, x_position, y_position)
+
+		return canvas
+
+	def draw_splash_unknown(self, canvas):
+		canvas.set_colour((0,0,0))
+		text = "?"
+		colour = (0xFF,0,0)
+		(text_width, text_height) = canvas.get_text_size(text)
+
+		w = canvas.get_width()
+		h = canvas.get_height()
+
+		x_position = int(w/2.0 - text_width/2.0)
+		y_position = int(h/2.0 - text_height/2.0)
+		canvas.draw_text(text, colour, x_position, y_position)
+
+		return canvas
+
 	"""
 	In menu mode the framework will draw some things on the floor to guide the 
 	 user to find what they want. 
@@ -192,28 +223,7 @@ class Menu(object):
 				current_menu_playlist = playlists[self.current_menu_playlist_index]
 				current_menu_playlist.draw_splash(canvas)
 
-				# Blank 4 columns on either side
-				for x in range(4):
-					for y in range(5):
-						canvas.set_pixel(x,y, (0,0,0))
-						canvas.set_pixel(x+canvas.get_width()-4,y, (0,0,0))
-
-				# Overlay a set of arrows to indicate that there are other options
-				arrow_colour = (0xFF,0xFF,0)
-				# If there are elements to the left, then draw an arrow
-				if self.current_menu_playlist_index > 0:
-					canvas.set_pixel(2,1, arrow_colour)
-					canvas.set_pixel(2,2, arrow_colour)
-					canvas.set_pixel(2,3, arrow_colour)
-					canvas.set_pixel(1,2, arrow_colour)
-
-				# If there are elements to the right, then draw an arrow
-				if self.current_menu_playlist_index < len(playlists)-1:
-					w = canvas.get_width()
-					canvas.set_pixel(w-3,1, arrow_colour)
-					canvas.set_pixel(w-3,2, arrow_colour)
-					canvas.set_pixel(w-3,3, arrow_colour)
-					canvas.set_pixel(w-2,2, arrow_colour)
+				self.draw_scrollbar(canvas, self.current_menu_playlist_index, len(playlists))
 
 				return canvas
 			else:
@@ -226,33 +236,29 @@ class Menu(object):
 				current_menu_playlist_plugins = current_menu_playlist.get_plugins()
 				plugin = current_menu_playlist_plugins[self.current_menu_playlist_entry_index]
 			
-				canvas = plugin.draw_splash(canvas)
+				# The plugin can't be trusted, so guard against badness
+				try:
+					splash_canvas = plugin.draw_splash(canvas)
+				except e:
+					self.logger.warn(e)
+					splash_canvas = self.draw_error(canvas)
 
-				# Blank 4 columns on either side
-				for x in range(4):
-					for y in range(5):
-						canvas.set_pixel(x,y, (0,0,0))
-						canvas.set_pixel(x+canvas.get_width()-4,y, (0,0,0))
-
-				# Overlay a set of arrows to indicate that there are other options
-				arrow_colour = (0xFF,0xFF,0)
-				# If there are elements to the left, then draw an arrow
-				if self.current_menu_playlist_entry_index > 0:
-					canvas.set_pixel(2,1, arrow_colour)
-					canvas.set_pixel(2,2, arrow_colour)
-					canvas.set_pixel(2,3, arrow_colour)
-					canvas.set_pixel(1,2, arrow_colour)
-
-				# If there are elements to the right, then draw an arrow
-				if self.current_menu_playlist_entry_index < len(current_menu_playlist_plugins)-1:
-					w = canvas.get_width()
-					canvas.set_pixel(w-3,1, arrow_colour)
-					canvas.set_pixel(w-3,2, arrow_colour)
-					canvas.set_pixel(w-3,3, arrow_colour)
-					canvas.set_pixel(w-2,2, arrow_colour)
-					
+				self.draw_scrollbar(canvas, self.current_menu_playlist_entry_index, len(current_menu_playlist_plugins))
 
 				return canvas
 	
 		return None
+
+	def draw_scrollbar(self, canvas, position, total):
+		# Blank the bottom row for a scroller
+		for x in range(canvas.get_width()):
+				canvas.set_pixel(x,canvas.get_height()-1, (0,0,0))
+
+		pixels_per_entry = canvas.get_width() / float(total)
+				
+		bar_start_x = int(math.floor(pixels_per_entry * position))
+		bar_end_x = int(math.ceil((pixels_per_entry *position) + pixels_per_entry))
+		bar_colour = (0xFF,0xFF,0)
+		canvas.draw_line(bar_start_x, canvas.get_height()-1, bar_end_x, canvas.get_height()-1, bar_colour)
+		return canvas
 
