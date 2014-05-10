@@ -6,6 +6,7 @@ import pygame
 import math
 
 from VisualisationPlugin import VisualisationPlugin
+from lib.controllers import ControllerInput
 
 import logging
 
@@ -40,10 +41,13 @@ class DiscoFloorVisualisationPlugin(VisualisationPlugin):
 		9	: "START"
 	}
 
-	square_size = 1
+	square_size = 2
 	max_square_size = 6
 
 	colour_selection = 1
+
+	brightness = 1.0
+	brightness_step = 0.1
 
 	fps = 2
 	max_fps = 10
@@ -53,6 +57,9 @@ class DiscoFloorVisualisationPlugin(VisualisationPlugin):
 		self.current_colours = None
 		self.last_beat = 0
 		self.colour_selection = self.all_floor_colours
+		self.brightness = 1.0
+		# Set this to true to force a refresh of the colours
+		self.force_regenerate_colours = False
 
 	def configure(self, config):
 		self.config = config
@@ -61,13 +68,13 @@ class DiscoFloorVisualisationPlugin(VisualisationPlugin):
 		# Seed the random function with the current time
 		random.seed()
 
-		self.fps = 2.0
+		self.fps = 2
 		self.square_size = 2
 
 		if config is not None:
 			# Get the fps
 			try:
-				self.fps = float(self.config["fps"])
+				self.fps = int(self.config["fps"])
 			except (ValueError, KeyError):
 				pass	
 
@@ -89,30 +96,63 @@ class DiscoFloorVisualisationPlugin(VisualisationPlugin):
 			event_name_temp = pygame.event.event_name(event.type)
 
 			if (event_name_temp == "JoyButtonDown"):
-				button = self.__buttons__[event.button]
+				#button = self.__buttons__[event.button]
+				button = event.button
 				if (button != None):
-					if (button == "LB"):
+					if (button == ControllerInput.BUMPER_LEFT):
 						if (self.square_size > 1):
 							self.square_size -= 1
-					if (button == "RB"):
+					if (button == ControllerInput.BUMPER_RIGHT):
 						if (self.square_size < self.max_square_size):
 							self.square_size += 1
 
-					if (button == "A"):
-						self.colour_selection = self.all_floor_colours
-					if (button == "B"):
-						self.colour_selection = self.primary_floor_colours
-					if (button == "Y"):
-						if (self.fps > 1):
+					if (button == ControllerInput.BUTTON_A):
+						if self.colour_selection != self.all_floor_colours:
+							self.colour_selection = self.all_floor_colours
+							self.force_regenerate_colours = True
+					if (button == ControllerInput.BUTTON_B):
+						if self.colour_selection != self.primary_floor_colours:
+							self.colour_selection = self.primary_floor_colours
+							self.force_regenerate_colours = True
+					if (button == ControllerInput.BUTTON_Y):
+						if (self.fps > 0):
 							self.fps -= 1
-					if (button == "X"):
+					if (button == ControllerInput.BUTTON_X):
 						if (self.fps < self.max_fps):
 							self.fps += 1
 
+			elif (event_name_temp == "JoyAxisMotion"):
+				if event.axis == 1:
+					# The axis is upside down, -1 = up
+					if event.value < -0.5:
+						self.increment_brightness()
+					elif event.value > 0.5:
+						self.decrement_brightness()
+				if event.axis == 0:
+					# Left and Right, generated new colours
+					if event.value < -0.5 or event.value > 0.5:
+						self.force_regenerate_colours = True
+			
 		except Exception as ex:
 			print (ex)
 			self.logger.error("ColourCycleExtraLargePlugin: %s" % ex)
 
+		return None
+
+	def increment_brightness(self):
+		if self.brightness < 1.0:
+			self.brightness += self.brightness_step
+		if self.brightness > 1.0:
+			self.brightness = 1.0
+		self.logger.info("Brightness: %f" % self.brightness)
+		return None
+
+	def decrement_brightness(self):
+		if self.brightness > 0.0:
+			self.brightness -= self.brightness_step
+		if self.brightness < 0.0:
+			self.brightness = 0.0
+		self.logger.info("Brightness: %f" % self.brightness)
 		return None
 
 	def regenerate_colours(self, colour_set, size):
@@ -131,12 +171,18 @@ class DiscoFloorVisualisationPlugin(VisualisationPlugin):
 		w = canvas.get_width()
 		h = canvas.get_height()
 
-		# Regenerate the colours on each beat.
-		current_beat = pygame.time.get_ticks() // (1000 / self.fps)
-		if current_beat != self.last_beat or self.current_colours is None:
-			#self.logger.info("Beat: %d" % current_beat)
+		# If there are no colours yet, regenerate
+		if ((self.current_colours is None) or (self.force_regenerate_colours == True)):
 			self.current_colours = self.regenerate_colours(self.colour_selection, int(w*h))
-		self.last_beat = current_beat
+			self.force_regenerate_colours = False
+		else:
+			# If we are on static, don't regenerated
+			if self.fps > 0:
+				# Regenerate the colours on each beat.
+				current_beat = pygame.time.get_ticks() // (1000 / self.fps)
+				if current_beat != self.last_beat:
+					self.current_colours = self.regenerate_colours(self.colour_selection, int(w*h))
+					self.last_beat = current_beat
 
 		self.draw_floor(canvas, self.current_colours, self.square_size)
 
@@ -157,7 +203,9 @@ class DiscoFloorVisualisationPlugin(VisualisationPlugin):
 				row = (x // square_size )
 				column = (y // square_size)
 				index = int(row * y_squares + column)
-				canvas.set_pixel_tuple(x,y, colours[index])
+				(r,g,b) = colours[index]
+				adjusted_brightness = (r*self.brightness, g*self.brightness, b*self.brightness)
+				canvas.set_pixel(x,y, adjusted_brightness)
 
 		return canvas
 
