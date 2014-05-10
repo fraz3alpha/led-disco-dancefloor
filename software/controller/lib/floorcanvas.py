@@ -3,6 +3,7 @@ __authors__ = ['Andrew Taylor']
 from lib.text import TextWriter
 
 import logging
+import math
 
 class FloorCanvas(object):
 
@@ -63,6 +64,8 @@ class FloorCanvas(object):
 
 	# Set a pixel with an int value
 	def set_pixel(self, x, y, colour):
+		x = int(round(x,0))
+		y = int(round(y,0))
 		# If the colour is a tuple and not an int,
 		#  unpack it into an int
 		if type(colour) is tuple:
@@ -73,6 +76,8 @@ class FloorCanvas(object):
 	# Set a pixel with an tuple value
 	# Deprecated, set_pixel now takes either an int or tuple
 	def set_pixel_tuple(self, x, y, colour):
+		x = int(round(x,0))
+		y = int(round(y,0))
 		if self.is_in_range(x,y):
 			self.data[x][y] = self.pack_colour_tuple(colour)
 
@@ -174,5 +179,46 @@ class FloorCanvas(object):
 		# Returns the text size as a (width, height) tuple for reference,
 		#  but doesn't actually draw anything because it doesn't pass a surface through
 		return TextWriter.draw_text(None, text, (0,0,0), 0, 0)
+
+	def draw_circle(self, x_centre, y_centre, radius, colour, fill):
+	
+		#radius = int(round(radius, 0))
+
+		x = 0
+		y = int(math.sqrt(radius ** 2 -1) + 0.5)
+
+		while (x <= y):
+			# The outline
+			self.set_pixel(x_centre-x, y_centre+y, colour)
+			self.set_pixel(x_centre+x, y_centre+y, colour)
+			self.set_pixel(x_centre-x, y_centre-y, colour)
+			self.set_pixel(x_centre+x, y_centre-y, colour)
+
+			self.set_pixel(x_centre-y, y_centre+x, colour)
+			self.set_pixel(x_centre+y, y_centre+x, colour)
+			self.set_pixel(x_centre-y, y_centre-x, colour)
+			self.set_pixel(x_centre+y, y_centre-x, colour)
+
+			# The fill
+			if fill is not None:
+				if y>=1:
+					y -= 1
+					self.draw_line(int(round(x_centre-x,0)), int(round(y_centre+y,0)), int(round(x_centre-x,0)), int(round(y_centre+x,0)), fill)
+					self.draw_line(int(round(x_centre+x,0)), int(round(y_centre+y,0)), int(round(x_centre+x,0)), int(round(y_centre+x,0)), fill)
+					self.draw_line(int(round(x_centre-x,0)), int(round(y_centre-y,0)), int(round(x_centre-x,0)), int(round(y_centre-x,0)), fill)
+					self.draw_line(int(round(x_centre+x,0)), int(round(y_centre-y,0)), int(round(x_centre+x,0)), int(round(y_centre-x,0)), fill)
+
+					self.draw_line(int(round(x_centre-y,0)), int(round(y_centre+x,0)), int(round(x_centre-x,0)), int(round(y_centre+x,0)), fill)
+					self.draw_line(int(round(x_centre+y,0)), int(round(y_centre+x,0)), int(round(x_centre+x,0)), int(round(y_centre+x,0)), fill)
+					self.draw_line(int(round(x_centre-y,0)), int(round(y_centre-x,0)), int(round(x_centre-x,0)), int(round(y_centre-x,0)), fill)
+					self.draw_line(int(round(x_centre+y,0)), int(round(y_centre-x,0)), int(round(x_centre+x,0)), int(round(y_centre-x,0)), fill)
+
+					
+
+			x += 1
+			if x > radius: break
+			y = int(math.sqrt(radius ** 2 - x ** 2) + 0.5)
+
+		return None
 
 
