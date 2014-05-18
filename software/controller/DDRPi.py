@@ -276,10 +276,6 @@ class DDRPiMaster():
 		# Link it up to the menu
 		menu.set_plugin_model(plugin_model)
 
-
-#		# Everything now is a playlist
-#		playlistModel = PluginPlaylistModel()
-
 		# If we have defined a specific plugin to run indefinitely on the command line, use that
 		specific_plugin = False
 		if "plugin" in config["system"]:
@@ -298,14 +294,21 @@ class DDRPiMaster():
 				exit()
 		if "playlist" in config["system"]:
 			
-			playlist = config["system"]["playlist"]
-			# Make the playlist an absolute path if it isn't already
-			if (not os.path.isabs(playlist)):
-				root_directory = os.path.dirname(os.path.realpath(__file__))
-				playlist = os.path.join(root_directory, playlist)
-			# Load the playlist
-			plugin_model.add_playlist_from_file(playlist)
-			plugin_model.set_current_playlist_by_index(1)
+			# Retreive the list of playlists specified on the command line
+			#  or config file
+			playlist_list = config["system"]["playlist"]
+			self.logger.info(playlist_list)
+			if len(playlist_list) > 0:
+				for playlist in playlist_list:
+					# Make the playlist an absolute path if it isn't already
+					if (not os.path.isabs(playlist)):
+						root_directory = os.path.dirname(os.path.realpath(__file__))
+						playlist = os.path.join(root_directory, playlist)
+					# Load the playlist
+					plugin_model.add_playlist_from_file(playlist)
+				# Start the first one we added
+				self.logger.info("Setting current playlist to the first one we added")
+				plugin_model.set_current_playlist_by_index(1)
 
 		# When there is no plugin specified and no user playlists either, make the first
 		#  playlist active, and select either the first plugin, or, if it is available,
@@ -313,16 +316,18 @@ class DDRPiMaster():
 
 		# .set_current_plugin() is a convenience method to start the all_plugins playlist
 		#  with the given plugin name
+		self.logger.info("Current playlist: %s" % plugin_model.get_current_playlist())
 		have_started_a_plugin = False
-		for specified_plugin in self.DEFAULT_STARTUP_PLUGIN:
-			if plugin_model.set_current_plugin(specified_plugin) is not None:
-				have_start_a_plugin = True
-				self.logger.info("Started default plugin %s" % specified_plugin)
-				break
+		if plugin_model.get_current_playlist() is None:
+			for specified_plugin in self.DEFAULT_STARTUP_PLUGIN:
+				if plugin_model.set_current_plugin(specified_plugin) is not None:
+					have_start_a_plugin = True
+					self.logger.info("Started default plugin %s" % specified_plugin)
+					break
 
-		# If we still haven't started anything, just start the all_plugins playlist
-		if have_started_a_plugin is False:
-			plugin_model.set_current_playlist_by_index(0)
+			# If we still haven't started anything, just start the all_plugins playlist
+			if have_started_a_plugin is False:
+				plugin_model.set_current_playlist_by_index(0)
 
 		print (plugin_model)
 #
@@ -576,7 +581,7 @@ class DDRPiMaster():
 		parser.add_argument('--headless', required=False, dest='headless', default=None, help='Don\'t bring up a GUI', action="store_true")
 		# --plugin defines a single plugin to be used, helpful in development and testing
 		parser.add_argument('--plugin', required=False, dest='plugin', default=None, help='The classname of the one plugin to use')
-		parser.add_argument('--playlist', required=False, dest='playlist', default=None, help='A playlist to use')
+		parser.add_argument('--playlist', required=False, action='append', dest='playlist', default=None, help='A playlist to use')
 		args, unknown = parser.parse_known_args()
 		self.logger.info("Just the --config argument:")
 		self.logger.info("%s"% args)
