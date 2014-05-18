@@ -80,14 +80,14 @@ class SpinningWheelVisualisationPlugin(VisualisationPlugin):
 				# Default, full colour
 				hue = angle_mod / (2.0 * math.pi)
 				saturation = 1.0
-				lightness = 0.5
+				value = 1.0
 				if colours == "BLACK_AND_WHITE":
 					hue = 0.0
 					saturation = 0.0
-					lightness = angle_mod / (1.0 * math.pi)
+					value = angle_mod / (1.0 * math.pi)
 
 
-				rgb_colour = self.reformat(colorsys.hsv_to_rgb(*(hue,saturation,lightness)))
+				rgb_colour = self.reformat(colorsys.hsv_to_rgb(*(hue,saturation,value)))
 				canvas.set_pixel_tuple(x,y,rgb_colour)
 		#exit(1)
 		return canvas
