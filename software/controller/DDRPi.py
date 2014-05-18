@@ -134,6 +134,11 @@ class DDRPiMaster():
 	DEFAULT_PLUGIN_DIRECTORY = "plugins"
 	logger = logging.getLogger(__name__)
 
+	# In the absence of a custom playlist, or a specific plugin
+	#  being requested, attempt to start the first available plugin
+	#  of this array
+	DEFAULT_STARTUP_PLUGIN = ["DiscoFloorVisualisationPlugin"]
+
 	"""
 	Initial constructor set up
 	"""
@@ -282,10 +287,6 @@ class DDRPiMaster():
 			if plugin_model.set_current_plugin(only_plugin) is not None:
 				self.logger.info("Running requested plugin %s" % only_plugin)
 				specific_plugin = True
-#			if only_plugin in available_plugins:
-#				plugin_attr = dict(name=only_plugin, duration=5000, obj=available_plugins[only_plugin])
-#				playlistModel.add_plugin(plugin_attr)
-#				self.logger.info("Added requested plugin: %s" % (only_plugin))
 			else:
 				self.logger.info("Unable to find requested plugin: %s" % (only_plugin))
 				self.logger.info("Available plugins are:")
@@ -296,7 +297,6 @@ class DDRPiMaster():
 				#  for whatever reason, exit.
 				exit()
 		if "playlist" in config["system"]:
-			#TODO: When there is no specific plugin specified, start the first playlist
 			
 			playlist = config["system"]["playlist"]
 			# Make the playlist an absolute path if it isn't already
@@ -306,20 +306,25 @@ class DDRPiMaster():
 			# Load the playlist
 			plugin_model.add_playlist_from_file(playlist)
 			plugin_model.set_current_playlist_by_index(1)
-#			playlistModel.load_playlist(available_plugins, playlist)
-#		else:
-#			# Else, iterate over the available ones and add them all, each lasting 5s
-#			for class_name in available_plugins:
-#					attr = dict(name=class_name, duration=5, obj=available_plugins[class_name])
-#					playlistModel.add_plugin(attr)
 
-		#TODO: When there is no plugin specified and no user playlists either, make the first
-		#       plugin active
+		# When there is no plugin specified and no user playlists either, make the first
+		#  playlist active, and select either the first plugin, or, if it is available,
+		#  any of the plugins listed in DEFAULT_STARTUP_PLUGIN
+
+		# .set_current_plugin() is a convenience method to start the all_plugins playlist
+		#  with the given plugin name
+		have_started_a_plugin = False
+		for specified_plugin in self.DEFAULT_STARTUP_PLUGIN:
+			if plugin_model.set_current_plugin(specified_plugin) is not None:
+				have_start_a_plugin = True
+				self.logger.info("Started default plugin %s" % specified_plugin)
+				break
+
+		# If we still haven't started anything, just start the all_plugins playlist
+		if have_started_a_plugin is False:
+			plugin_model.set_current_playlist_by_index(0)
 
 		print (plugin_model)
-#		exit(1)
-		# Print the current playlist
-#		playlistModel.print_playlist()
 #
 		if self.gui is not None:
 			#playlistModel.add_model_changed_listener(self.gui)
