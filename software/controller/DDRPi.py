@@ -517,16 +517,20 @@ class DDRPiMaster():
 						module_name = fname.split('.',1)[0]
 						# Create the full path to the file
 						fpath = os.path.join(root, fname)
-						# Load the module dynamically
-						foo = imp.load_source(module_name, fpath)
-						# Search through the members of this module
-						#  to find the classes used, and find the
-						#  ones that end in "VisualisationPlugin" which
-						#  are defined in this module
-						for name, obj in inspect.getmembers(foo):
-							if inspect.isclass(obj):
-								if name.endswith("Plugin") and obj.__module__ == module_name:
-									these_plugins[obj.__name__] = obj
+						# Attempt to load the module dynamically
+						try:
+							foo = imp.load_source(module_name, fpath)
+							# Search through the members of this module
+							#  to find the classes used, and find the
+							#  ones that end in "VisualisationPlugin" which
+							#  are defined in this module
+							for name, obj in inspect.getmembers(foo):
+								if inspect.isclass(obj):
+									if name.endswith("Plugin") and obj.__module__ == module_name:
+										these_plugins[obj.__name__] = obj
+						except Exception as e:
+							self.logger.info("An error occurred loading plugin %s from %s" % (module_name, fpath))
+							self.logger.info(e)
 
 			# Print out a list of what plugins were loaded from each directory
 			self.logger.info("Visualisation plugins loaded from '%s':" % (plugin_dir))
