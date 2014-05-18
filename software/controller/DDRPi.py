@@ -405,8 +405,9 @@ class DDRPiMaster():
 					#  exception	
 					try:
 						display_frame = current_plugin.instance.draw_frame(canvas)
-					except:
+					except Exception as e:
 						self.logger.warn("Current plugin threw an error whilst running draw_frame()")
+						self.logger.warn(e)
 						display_frame = self.draw_error(canvas)
 						
 						
