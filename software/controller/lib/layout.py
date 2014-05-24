@@ -11,10 +11,42 @@ class DisplayLayout(object):
 		self.load_config(config)
 
 	def load_config(self, config):
-		self.module_config = config
+		self.module_config = config["modules"]
+
+		# Get the floor rotation from the config
+		self.rotation = 0
+		try:
+			# Rotation cycles round after 3, with 4==0, so take the mod
+			self.rotation = int(config["system"]["floor_rotation"]) % 4
+			self.logger.info("Floor rotation found in config, set to %d" % self.rotation)
+		except (AttributeError, ValueError, KeyError) as e:
+			pass
+
 		(self.size_x, self.size_y) = self.calculate_floor_size()
 		self.calculate_mapping()
-			
+		self.rotate_layout(self.rotation)
+
+	def rotate_layout(self, rotation):
+		# Incrementing rotation by 1 rotates the floor by 90 degrees.
+		# The size stays the same, just the axes move around, so return the right combo
+
+		# If the rotation is not 0, then we should shift the layout mapping around
+		if self.rotation > 0:
+
+			# Set the new size
+			original_size_x = self.size_x
+			original_size_y = self.size_y
+			if self.rotation % 2 == 1:
+				self.size_x = original_size_y
+				self.size_y = original_size_x
+
+			for i in range(self.rotation):
+				self.logger.info("Rotate Layout - %d" % i)
+				# Very cunning, this. I found it on the internet
+				self.layout_mapping = zip(*self.layout_mapping[::-1])
+
+			self.logger.info("Floor is now of size %d, %d" % (self.size_x, self.size_y))	
+
 	def draw_layout(self):
 		"""
 		Draw the modules layout to the console. This method draws the
@@ -123,6 +155,7 @@ class DisplayLayout(object):
 				              module_data["y_position"])
 			else:
 				self.logger.error("The orientation of a tile in the config was not recognised")	 
+
 				
 	def calculate_floor_size(self):
 		"""
@@ -156,7 +189,7 @@ class DisplayLayout(object):
 				x_extent = max_x
 			if (max_y > y_extent):
 				y_extent = max_y
-					 
+				
 		return (x_extent, y_extent)
-					 
+
 		

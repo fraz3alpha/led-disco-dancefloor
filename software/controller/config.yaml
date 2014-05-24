@@ -6,6 +6,7 @@ system:
   debug: False
   debug_logging: True
   pipe: /tmp/dance_pipe
+  floor_rotation: 0
 
 outputs:
   1:

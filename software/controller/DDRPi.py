@@ -207,12 +207,11 @@ class DDRPiMaster():
 		input_adapters = []
 
 		# Parse the floor layout
-		layout = DisplayLayout(config["modules"])
-		(floor_x, floor_y) = layout.calculate_floor_size()
+		layout = DisplayLayout(config)
 		converter = layout.get_converter()
 		
 		# Create a suitably sized canvas for the given config
-		canvas = FloorCanvas(floor_x, floor_y)
+		canvas = FloorCanvas(layout.size_x, layout.size_y)
 
 		# Create a menu object to handle user input
 		menu = Menu()
@@ -409,7 +408,6 @@ class DDRPiMaster():
 						self.logger.warn("Current plugin threw an error whilst running draw_frame()")
 						self.logger.warn(e)
 						display_frame = self.draw_error(canvas)
-						
 						
 				else:
 					# If there is no plugin, then the framework should
