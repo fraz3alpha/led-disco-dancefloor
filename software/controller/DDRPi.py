@@ -84,6 +84,8 @@ import time
 # We need pygame for the controller input logic, and the debug gui
 import pygame
 
+import sys
+
 # Python comes with some color conversion methods.
 import colorsys
 # For Math things, what else
@@ -267,7 +269,7 @@ class DDRPiMaster():
 		#  menu class to change what is active
 		# We should also be able to provide this model to a webservice
 		#  class if we chose to add in HTTP control of the floor too
-		plugin_model = PluginModel()
+		plugin_model = PluginModel((layout.size_x, layout.size_y))
 
 		# Populate the data model
 		plugin_model.add_plugins(available_plugins)
@@ -379,7 +381,7 @@ class DDRPiMaster():
 				if e is None:
 					 continue
 
-				self.print_input_event(e)
+				#self.print_input_event(e)
 
 				# Next pass it on to the current plugin, if
 				#  there is one
@@ -532,9 +534,11 @@ class DDRPiMaster():
 								if inspect.isclass(obj):
 									if name.endswith("Plugin") and obj.__module__ == module_name:
 										these_plugins[obj.__name__] = obj
-						except Exception as e:
-							self.logger.info("An error occurred loading plugin %s from %s" % (module_name, fpath))
+						except (Exception) as e:
+							self.logger.info("An error occurred loading plugins from %s" % (fname))
 							self.logger.info(e)
+							self.logger.info(sys.exc_info())
+							exit()
 
 			# Print out a list of what plugins were loaded from each directory
 			self.logger.info("Visualisation plugins loaded from '%s':" % (plugin_dir))
@@ -681,7 +685,8 @@ class DDRPiMaster():
 		return args;
 
 # GO GO GO!
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+formatter = logging.Formatter('[%(asctime)s] p%(process)s {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s','%m-%d %H:%M:%S')
+logging.basicConfig(format='%(asctime)s - %(name)s:%(lineno)d - %(levelname)s - %(message)s', level=logging.INFO)
 logger.info("Loading DDRPi")
 ddrpi = DDRPiMaster()
 ddrpi.run()
