@@ -2,6 +2,7 @@
 from VisualisationPlugin import VisualisationPlugin
 
 import pygame
+import logging
 
 from DDRPi import FloorCanvas
 
@@ -32,15 +33,18 @@ class SampleVisualisationPlugin(VisualisationPlugin):
 	def resume(self):
 		pass
 
-	def draw_frame(self, surface):
+	def draw_frame(self, canvas):
+
+		# Draw whatever this plugin does.
+		canvas = self.draw_surface(canvas, pygame.time.get_ticks())
 
 		# Limit the frame rate.
 		# This sleeps so that at least 25ms has passed since tick() 
 		#  was last called. It is a no-op if the loop is running slow
 		self.clock.tick(25)
-		# Draw whatever this plugin does.
+
 		# We need to return our decorated surface
-		return self.draw_surface(surface, pygame.time.get_ticks())
+		return canvas
 
 	def draw_splash(self,canvas):
 		return self.draw_surface(canvas,0)
