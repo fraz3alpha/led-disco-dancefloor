@@ -4,6 +4,7 @@ from lib.text import TextWriter
 
 import logging
 import math
+import colorsys
 
 class FloorCanvas(object):
 
@@ -63,15 +64,31 @@ class FloorCanvas(object):
 		return (self.width, self.height)
 
 	# Set a pixel with an int value
-	def set_pixel(self, x, y, colour):
+	def set_pixel(self, x, y, colour, format="RGB"):
 		x = int(round(x,0))
 		y = int(round(y,0))
-		# If the colour is a tuple and not an int,
-		#  unpack it into an int
-		if type(colour) is tuple:
-			colour = self.pack_colour_tuple(colour)
+		if format == "RGB":
+			# If the colour is a tuple and not an int,
+			#  unpack it into an int
+			if type(colour) is tuple:
+				colour = self.pack_colour_tuple(colour)
+		elif format == "HSV":
+			# It should always be a tuple for HSV, I'm not sure
+			#  you can do anything if it isn't
+			if type(colour) is tuple:
+				colour = self.reformat(colorsys.hsv_to_rgb(*colour))
+				colour = self.pack_colour_tuple(colour)
 		if self.is_in_range(x,y):
 			self.data[x][y] = colour
+
+	def reformat (self, colour):
+		return int (round (colour[0] * 255))%256, \
+			int (round (colour[1] * 255))%256, \
+			int (round (colour[2] * 255))%256
+
+	# Normalization method, so the colors are in the range [0, 1]
+	def normalize (self, colour):
+	    return colour[0] / 255.0, colour[1] / 255.0, colour[2] / 255.0
 
 	# Set a pixel with an tuple value
 	# Deprecated, set_pixel now takes either an int or tuple
@@ -99,8 +116,11 @@ class FloorCanvas(object):
 		return None
 
 	# Return the colour as (R,G,B) tuple
-	def get_pixel_tuple(self, x, y):
-		return self.unpack_colour_tuple(self.get_pixel(x,y))
+	def get_pixel_tuple(self, x, y, format="RGB"):
+		if format == "RGB":
+			return self.unpack_colour_tuple(self.get_pixel(x,y))
+		elif format == "HSV":
+			return colorsys.rgb_to_hsv(*self.normalize(self.get_pixel(x,y)))
 
 	def unpack_colour_tuple(self, colour):
 		if colour < 0:
