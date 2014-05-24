@@ -17,8 +17,9 @@ class PluginModel(object):
 
 	logger = logging.getLogger(__name__)
 
-	def __init__(self):
+	def __init__(self, surface_size):
 		self.reset_model()
+		self.surface_size = surface_size
 		pass
 
 	def reset_model(self):
@@ -131,8 +132,13 @@ class PluginModel(object):
 					self.logger.warn("Unable to locate %s in available plugins" % plugin_name)
 					continue
 				details["obj"] = self.plugins[plugin_name]
+				details["size"] = self.surface_size
 				self.logger.info("Adding plugin to playlist: %s" % details)
-				playlist.add_plugin(Plugin(plugin_name, self.plugins[plugin_name], details))
+				try:
+					playlist.add_plugin(Plugin(plugin_name, self.plugins[plugin_name], details))
+				except Exception as e:
+					self.logger.warn(e)
+					self.logger.warn("Failed to add %s found in playlist %s" % (plugin_name, playlist_file))
 
 		self.logger.info("Created playlist of size %d" % playlist.get_size())
 		self.add_playlist(playlist)
@@ -141,7 +147,14 @@ class PluginModel(object):
 	def add_plugin(self, plugin_name, plugin_object):
 		self.logger.info("Adding plugin %s to the menu list" % plugin_name)
 		self.plugins[plugin_name] = plugin_object
-		self.all_plugins_playlist.add_plugin(Plugin(plugin_name, plugin_object))
+		config = {"size": self.surface_size}
+		# This could throw an exception if the plugin cannot be configured (which
+		#  is done in __init__ of Plugin
+		try:
+			self.all_plugins_playlist.add_plugin(Plugin(plugin_name, plugin_object, config))
+		except Exception as e:
+			self.logger.warn(e)
+			self.logger.warn("Failed to add %s to the plugin model" % plugin_name)
 		return None
 
 	def add_plugins(self, plugins):

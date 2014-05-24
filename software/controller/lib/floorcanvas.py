@@ -140,6 +140,21 @@ class FloorCanvas(object):
 		value = (red << 16) + (green << 8) + blue
 		return value
 
+	def draw_box(self, top_left, bottom_right, colour):
+		"""
+		Fill the box from top left to bottom right with the given colour
+		"""
+		(tlx,tly) = top_left
+		(brx,bry) = bottom_right
+		if tlx <= brx and tly <= bry:
+			y = tly
+			while y <= bry:
+				x = tlx
+				while x <= brx:
+					self.set_pixel(x, y, colour)
+					x += 1
+				y += 1
+
 	def draw_line(self, from_x, from_y, to_x, to_y, colour, aliasing=None):
 		# Work out which direction has the most pixels
 		#  so that there are no gaps in the line
