@@ -6,6 +6,7 @@ import pygame.camera
 import logging
 
 from DDRPi import FloorCanvas
+from lib.controllers import ControllerInput
 
 class CameraVisualisationPlugin(VisualisationPlugin):
 
@@ -14,6 +15,7 @@ class CameraVisualisationPlugin(VisualisationPlugin):
 	def __init__(self):
 		self.clock = pygame.time.Clock()
 		self.webcam = None
+		self.webcam_index = None
 
 	# Nothing specific to be done before this starts, although we could 
 	#  set self.clock here. Stash any config so we can use it later
@@ -31,19 +33,44 @@ class CameraVisualisationPlugin(VisualisationPlugin):
 			for camera in camera_list:
 				self.logger.info("CAMERA: %s" % camera)
 #			# Choose the first webcam
+			self.webcam_index = 0
 			self.webcam = pygame.camera.Camera(camera_list[0],(800,600))
 #
 			self.webcam.start() # start camera
 		pass
 
 	def stop(self):
-		pass
+		self.webcam.stop()
 
 	def pause(self):
 		pass
 
 	def resume(self):
 		pass
+
+	def handle_event(self, event):
+
+		try:
+
+			if (pygame.event.event_name(event.type) == "JoyButtonDown"):
+				# iterate over the attached cameras if there are more than one
+				if (event.button == ControllerInput.BUMPER_RIGHT):
+					camera_list = pygame.camera.list_cameras()
+					if len(camera_list) > 0:
+						# Stop the existing one
+						self.logger.info("Stopping current camera: %s" % self.webcam)
+						self.webcam.stop()
+						if self.webcam_index is not None:
+							self.webcam_index += 1
+						else:
+							self.webcam_index = 0
+						if self.webcam_index >= len(camera_list):
+							self.webcam_index = 0
+						self.webcam = pygame.camera.Camera(camera_list[self.webcam_index],(800,600))
+						self.logger.info("starting new camera: %s" % self.webcam)
+						self.webcam.start()
+		except Exception as e:
+			self.logger.warn(e)
 
 	def draw_frame(self, surface):
 
