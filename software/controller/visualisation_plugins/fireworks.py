@@ -58,7 +58,7 @@ class FireworksVisualisationPlugin(VisualisationPlugin):
 
 	def new_random_firework(self, limit_x, limit_y):
 
-		firework_colours = [(0xFF,0,0),(0,0xFF,0),(0,0,0xFF),(0xFF,0xFF,0),(0,0xFF,0xFF),(0xFF,0,0xFF)]
+		firework_colours = [(0xFF,0,0),(0,0xFF,0),(0,0,0xFF),(0xFF,0xFF,0),(0,0xFF,0xFF),(0xFF,0,0xFF),(0xFF,0xFF,0xFF)]
 
 		firework = dict()
 		firework["colour"] = firework_colours[random.randint(0,len(firework_colours)-1)]
@@ -67,10 +67,10 @@ class FireworksVisualisationPlugin(VisualisationPlugin):
 		firework["explode_radius"] = random.randint(20,70)/ 10.0
 		firework["explode_speed"] = random.randint(30,50)/ 10.0
 		firework["decay_speed"] = 4.0
-		firework["x"] = random.randint(0,limit_x)
-		firework["target_height"] = random.randint(4,limit_y)
-		firework["speed"] = random.randint(20,60)/ 10.0
-		firework["tail"] = random.randint(40,50)/ 10.0
+		firework["x"] = random.randint(0,int(limit_x))
+		firework["target_height"] = random.randint(4,int(limit_y))
+		firework["speed"] = random.randint(50,80)/ 10.0
+		firework["tail"] = random.randint(60,70)/ 10.0
 		# Options: LAUNCH, EXPLODE, DEAD
 		firework["mode"] = "LAUNCH"
 		return firework
@@ -81,10 +81,7 @@ class FireworksVisualisationPlugin(VisualisationPlugin):
 		if self.fireworks is None:
 			self.fireworks = []
 			for i in range(10):
-				self.fireworks.append(self.new_random_firework(canvas.get_width(), canvas.get_height()))
-#			self.fireworks.append(self.new_firework())
-#			self.fireworks.append(self.new_firework((0,0xFF,0), 6, 4.0))
-#			self.fireworks.append(self.new_firework((0xFF,0,0), 8, 6.0))
+				self.fireworks.append(self.new_random_firework(canvas.get_width(), canvas.get_height()*0.8))
 
 		# See if any fireworks have finished, and we need new ones
 		for idx, firework in enumerate(self.fireworks):
@@ -179,7 +176,7 @@ class FireworksVisualisationPlugin(VisualisationPlugin):
 					#self.logger.info("Time since max explosion: %f" % t_since_max_explosion)
 					explosion_radius = firework["explode_radius"] + t_since_max_explosion * firework["explode_speed"] / 4.0
 
-				decay_ratio = math.e ** -(t_since_explosion/(1.0))
+				decay_ratio = min(1.0, math.e ** -((t_since_explosion-2.0)/(1.0)))
 				if decay_ratio < 0.01:
 					firework["mode"] = "DEAD"
 
