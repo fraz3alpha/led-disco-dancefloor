@@ -68,7 +68,7 @@ class Menu(object):
 	"""
 	def handle_event(self, e):
 
-		self.logger.info("Checking if the menu wants to handle the event")
+		#self.logger.info("Checking if the menu wants to handle the event")
 
 		if (self.in_menu is False):
 			# See if we should enter the menu

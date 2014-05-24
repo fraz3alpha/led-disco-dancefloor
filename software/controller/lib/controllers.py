@@ -79,7 +79,7 @@ class ControllerInput(object):
 	They may go out as they came in, or they might be changed
 	"""
 	def map_event(self, e):
-		self.logger.info("Mapping event - %s" % e)
+		#self.logger.info("Mapping event - %s" % e)
 		if e.type in [pygame.KEYDOWN, pygame.KEYUP]:
 			return self.map_key_to_joystick_event(e)
 		#if e.type in [pygame.JOYAXISMOTION]:
