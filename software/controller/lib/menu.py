@@ -239,7 +239,7 @@ class Menu(object):
 				# The plugin can't be trusted, so guard against badness
 				try:
 					splash_canvas = plugin.draw_splash(canvas)
-				except e:
+				except Exception as e:
 					self.logger.warn(e)
 					splash_canvas = self.draw_error(canvas)
 
