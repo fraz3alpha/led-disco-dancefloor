@@ -1,41 +1,65 @@
 plugins:
-  -
-    name: WavyBlobVisualisationPlugin
-    duration: 10
-
-  -
-    name: SpeedingBlobsVisualisationPlugin
-    duration: 15
 
   -
     name: DiscoFloorVisualisationPlugin
-    duration: 15
-    size: 2
+    duration: 30
+    square_size: 2
     fps: 2
     colour_set: secondary
+
+  -
+    name: SpeedingBlobsVisualisationPlugin
+    duration: 30
+
+  -
+    name: SpinningWheelVisualisationPlugin
+    duration: 30
+    colours: full_colour
 
   -
     name: ScrollingTextVisualisationPlugin
     duration: 10
     text: Congratulations
-    speed: 20
+    speed: 25
     background_colour: black
     colour: red
 
   -
-    name: SineWaveVisualisationPlugin
+    name: FireworksVisualisationPlugin
+    mode: fireworks
+    duration: 30
+
+  -
+    name: SoundToLightVisualisationPlugin
+    duration: 60
+    policy: exp
+    mode: latest
+
+  -
+    name: WavyBlobVisualisationPlugin
+    duration: 30
+
+  -
+    name: SpinningWheelVisualisationPlugin
     duration: 5
+    speed: 30
+    colours: black_and_white
+  -
+    name: SineWaveVisualisationPlugin
+    duration: 30
     background_colour: red
     colour: white
     amplitude: 8.0
 
   -
-    name: SineWaveVisualisationPlugin
-    duration: 5
-    background_colour: green
-    colour: blue
-    period: 18.0
-    amplitude: 5.0
+    name: SoundToLightVisualisationPlugin
+    duration: 30
+    policy: exp
+    mode: scrolling
 
+  -
+    name: FireworksVisualisationPlugin
+    mode: explosions
+    duration: 30
 
 

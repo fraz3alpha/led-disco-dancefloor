@@ -58,8 +58,8 @@ class SpinningWheelVisualisationPlugin(VisualisationPlugin):
 				pass
 
 			try:
-				if self.config["colours"] in ["FULL_COLOUR", "BLACK_AND_WHITE"]:
-					colours = self.config["colours"]
+				if self.config["colours"].upper() in ["FULL_COLOUR", "BLACK_AND_WHITE"]:
+					colours = self.config["colours"].upper()
 			except (AttributeError, KeyError):
 				pass
 

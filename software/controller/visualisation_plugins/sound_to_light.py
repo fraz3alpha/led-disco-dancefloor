@@ -34,7 +34,7 @@ class SoundToLightVisualisationPlugin(VisualisationPlugin):
 	
 		self.scrolling = False
 		
-		self.modes = ["SCROLLING", "LATEST"]
+		self.modes = ["scrolling", "latest"]
 		self.mode = self.modes[1]
 
 		self.chunk_policies = ["linear", "exp"]
@@ -53,6 +53,24 @@ class SoundToLightVisualisationPlugin(VisualisationPlugin):
 
 	def configure(self, config):
 		self.config = config
+
+		# Set the mode to the requested value, if present
+		try:
+			mode = self.config["mode"]
+			if mode.lower() in self.modes:
+				self.mode = mode.lower()
+		except (AttributeError, ValueError, KeyError):
+			pass
+
+		# Set the binning algorithm to the requested one, if present
+		try:
+			policy = self.config["policy"]
+			if policy.lower() in self.chunk_policies:
+				self.chunk_policy = policy.lower()
+		except (AttributeError, ValueError, KeyError):
+			pass
+
+
 		self.logger.info("Config: %s" % config)
 
 	"""
@@ -116,7 +134,7 @@ class SoundToLightVisualisationPlugin(VisualisationPlugin):
 			max_average = max(255, int(sum(self.rolling_max) / len(self.rolling_max)))
 			block_values = []
 
-			if self.mode == "SCROLLING":
+			if self.mode == "scrolling":
 
 				for x in range(canvas.get_width()):
 					# Skip a sample if it there isn't enough data available
@@ -145,7 +163,7 @@ class SoundToLightVisualisationPlugin(VisualisationPlugin):
 
 					# Two options, either max, or mean
 					#standard_peak_value = max(max(self.rolling_max), 50) / 2
-					standard_peak_value = int(numpy.mean(self.rolling_max))
+					standard_peak_value = max(int(numpy.mean(self.rolling_max)), 255)
 
 					# Scale everything to the peak value to be in the range [0,1]
 					scaled_data = []
@@ -156,7 +174,7 @@ class SoundToLightVisualisationPlugin(VisualisationPlugin):
 						scaled_value = min(255, int(255 * scaled_data[y]))
 						canvas.set_pixel(x, y, (scaled_value, scaled_value, scaled_value))
 
-			elif self.mode == "LATEST":
+			elif self.mode == "latest":
 				latest = self.data[-1]
 
 				number_of_chunks = canvas.get_width()

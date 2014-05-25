@@ -80,7 +80,7 @@ class DiscoFloorVisualisationPlugin(VisualisationPlugin):
 
 			# Get the square size
 			try:
-				self.square_size = int(self.config["size"])
+				self.square_size = int(self.config["square_size"])
 			except (ValueError, KeyError):
 				pass	
 	
