@@ -8,6 +8,7 @@ import math
 import random
 
 from DDRPi import FloorCanvas
+from lib.controllers import ControllerInput
 
 class FireworksVisualisationPlugin(VisualisationPlugin):
 
@@ -16,6 +17,10 @@ class FireworksVisualisationPlugin(VisualisationPlugin):
 	def __init__(self):
 		self.clock = pygame.time.Clock()
 
+		self.modes = ["FIREWORKS", "EXPLOSIONS"]
+		self.mode_index = 0
+		self.mode = self.modes[self.mode_index]
+
 		self.fireworks = None
 
 	# Nothing specific to be done before this starts, although we could 
@@ -23,6 +28,13 @@ class FireworksVisualisationPlugin(VisualisationPlugin):
 	def configure(self, config):
 		self.config = config
 		self.logger.info("Config: %s" % config)
+
+		try:
+			if self.config["mode"].upper() in self.modes:
+				self.mode = self.config["mode"].upper()
+				self.mode_index = self.modes.index(self.mode)
+		except (AttributeError, KeyError):
+			pass
 
 	# This will just keep running, nothing specific to do for start(), stop(),
 	#  pause() or resume()
@@ -37,6 +49,21 @@ class FireworksVisualisationPlugin(VisualisationPlugin):
 
 	def resume(self):
 		pass
+
+	def handle_event(self, event):
+
+		try:
+
+			if (pygame.event.event_name(event.type) == "JoyButtonDown"):
+				# iterate over the attached cameras if there are more than one
+				if (event.button == ControllerInput.BUMPER_RIGHT):
+					self.mode_index += 1
+					if self.mode_index >= len(self.modes):
+						self.mode_index = 0
+					self.mode = self.modes[self.mode_index]
+					self.logger.info("Switching mode to %s" % self.mode)
+		except Exception as e:
+			self.logger.warn(e)
 
 	def new_firework(self, colour=(0xFF,0,0), x=12, explode_height=8.0):
 
@@ -68,11 +95,20 @@ class FireworksVisualisationPlugin(VisualisationPlugin):
 		firework["explode_speed"] = random.randint(30,50)/ 10.0
 		firework["decay_speed"] = 4.0
 		firework["x"] = random.randint(0,int(limit_x))
-		firework["target_height"] = random.randint(4,int(limit_y))
 		firework["speed"] = random.randint(50,80)/ 10.0
 		firework["tail"] = random.randint(60,70)/ 10.0
 		# Options: LAUNCH, EXPLODE, DEAD
-		firework["mode"] = "LAUNCH"
+		# If we just want explosions, no trails, then 
+		if self.mode == "EXPLOSIONS":
+			firework["mode"] = "EXPLODE"
+			firework["target_height"] = random.randint(0,int(limit_y))
+			firework["explode_time"] = pygame.time.get_ticks()
+			firework["delay"] = random.randint(0,5000)
+		else :
+			firework["mode"] = "LAUNCH"
+			firework["target_height"] = random.randint(4,int(limit_y))
+			firework["delay"] = random.randint(0,5000)
+
 		return firework
 		
 
@@ -80,7 +116,17 @@ class FireworksVisualisationPlugin(VisualisationPlugin):
 
 		if self.fireworks is None:
 			self.fireworks = []
-			for i in range(10):
+
+			quantity = 20
+			# Get the number of fireworks requested from the config, if 
+			#  set
+			try:
+				quantity = int(self.config["quantity"])
+			except (AttributeError, ValueError, KeyError):
+				pass
+
+
+			for i in range(quantity):
 				self.fireworks.append(self.new_random_firework(canvas.get_width(), canvas.get_height()*0.8))
 
 		# See if any fireworks have finished, and we need new ones
@@ -102,7 +148,38 @@ class FireworksVisualisationPlugin(VisualisationPlugin):
 	def draw_splash(self,canvas):
 
 		fireworks = []
-		fireworks.append(self.new_firework())
+
+		firework = dict()
+		firework["colour"] = (0xFF,0,0)
+		firework["start_time"] = -3000
+		firework["explode_time"] = -1000
+		firework["explode_radius"] = 3.0
+		firework["explode_speed"] = 5.0
+		firework["decay_speed"] = 4.0
+		firework["x"] = canvas.get_width() // 2
+		firework["target_height"] = canvas.get_height() // 2
+		firework["speed"] = 4.0
+		firework["tail"] = 5.0
+		# Options: LAUNCH, EXPLODE
+		firework["mode"] = "EXPLODE"
+
+		fireworks.append(firework)
+
+		firework = dict()
+		firework["colour"] = (0xFF,0xFF,0)
+		firework["start_time"] = -3000
+		firework["explode_time"] = None
+		firework["explode_radius"] = 3.0
+		firework["explode_speed"] = 5.0
+		firework["decay_speed"] = 4.0
+		firework["x"] = int(canvas.get_width() * 0.80)
+		firework["target_height"] = canvas.get_height() // 2
+		firework["speed"] = 4.0
+		firework["tail"] = 5.0
+		# Options: LAUNCH, EXPLODE
+		firework["mode"] = "LAUNCH"
+
+		fireworks.append(firework)
 
 		return self.draw_surface(canvas, fireworks, 0)
 
@@ -121,7 +198,21 @@ class FireworksVisualisationPlugin(VisualisationPlugin):
 	def draw_surface(self, canvas, fireworks, t):
 		canvas.set_colour(FloorCanvas.BLACK)
 
-		for firework in fireworks:
+		for idx,firework in enumerate(fireworks):
+
+			# See if the delay, if set, has elapsed.
+			if "delay" in firework:
+				# If it has elapsed, or not set, nothing to do
+				if firework["delay"] is not None:
+					# If we have waiting long enough, then start the launch
+					if t > firework["start_time"] + firework["delay"]:
+						firework["delay"] = None
+						firework["start_time"] = t
+						if self.mode == "EXPLOSIONS":
+							firework["explode_time"] = t
+					# If we haven't waited long enough, go to the next firework
+					else:
+						continue
 
 			theoretical_height = (t-firework["start_time"])/1000.0 * firework["speed"]
 
@@ -133,33 +224,37 @@ class FireworksVisualisationPlugin(VisualisationPlugin):
 				current_height = theoretical_height
 			else:
 				current_height = firework["target_height"]
-			# Draw the launching tail, which is an antialiased line, with 
-			#  a gradient on it! :S
-			# But if they just go straight, then it's less of a problem
-			(x_quot, x_rem) = divmod(firework["x"], 1.0)
-			(y_quot, y_rem) = divmod(current_height, 1.0)
-			#self.logger.info("y quot:%f, mod:%f" % (y_quot, y_rem))
-			(h,s,v) = colorsys.rgb_to_hsv(*self.normalize(firework["colour"]))
-			# Draw the tail
-			for y in range(int(y_quot)):
-				# If it is a few blocks away, then tail the value off
-				if y < (theoretical_height - 1):
-					if y < theoretical_height -1 -firework["tail"]:
-						pass
-					else:
-						tail_prop = (y - (theoretical_height - 1 - firework["tail"])) / float(firework["tail"])
-						#self.logger.info("hsv input: %f,%f,%f" % (h,s,v))
-						canvas.set_pixel(x_quot, y, (h,s,tail_prop * v), format="HSV")
-			# If there is an extra bit left over
-			if y_rem > 0.01:
-				v_partial = v * y_rem
-				#self.logger.info("Remainder: %f, v_partial: %f" % (y_rem, v_partial))
-				canvas.set_pixel(x_quot, y_quot, (h,s,v_partial), format="HSV")
 
-			if firework["mode"] == "LAUNCH":
-				# Always Draw the brightest firework point
-				canvas.set_pixel(x_quot, y_quot, (h,s,v), format="HSV")
-			elif firework["mode"] == "EXPLODE":
+			(h,s,v) = colorsys.rgb_to_hsv(*self.normalize(firework["colour"]))
+
+
+			if self.mode == "FIREWORKS":
+				# Draw the launching tail, which is an antialiased line, with 
+				#  a gradient on it! :S
+				# But if they just go straight, then it's less of a problem
+				(x_quot, x_rem) = divmod(firework["x"], 1.0)
+				(y_quot, y_rem) = divmod(current_height, 1.0)
+				#self.logger.info("y quot:%f, mod:%f" % (y_quot, y_rem))
+				# Draw the tail
+				for y in range(int(y_quot)):
+					# If it is a few blocks away, then tail the value off
+					if y < (theoretical_height - 1):
+						if y < theoretical_height -1 -firework["tail"]:
+							pass
+						else:
+							tail_prop = (y - (theoretical_height - 1 - firework["tail"])) / float(firework["tail"])
+							#self.logger.info("hsv input: %f,%f,%f" % (h,s,v))
+							canvas.set_pixel(x_quot, y, (h,s,tail_prop * v), format="HSV")
+				# If there is an extra bit left over
+				if y_rem > 0.01:
+					v_partial = v * y_rem
+					#self.logger.info("Remainder: %f, v_partial: %f" % (y_rem, v_partial))
+					canvas.set_pixel(x_quot, y_quot, (h,s,v_partial), format="HSV")
+
+				if firework["mode"] == "LAUNCH":
+					# Always Draw the brightest firework point
+					canvas.set_pixel(x_quot, y_quot, (h,s,v), format="HSV")
+			if firework["mode"] == "EXPLODE":
 				# Draw an increasing disc of light
 
 				explode_x = firework["x"]
