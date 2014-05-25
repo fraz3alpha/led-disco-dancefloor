@@ -2,7 +2,7 @@ plugins:
 
   -
     name: DiscoFloorVisualisationPlugin
-    duration: 30
+    duration: 60
     square_size: 2
     fps: 2
     colour_set: secondary
@@ -30,6 +30,13 @@ plugins:
     duration: 30
 
   -
+    name: DiscoFloorVisualisationPlugin
+    duration: 60
+    square_size: 2
+    fps: 2
+    colour_set: secondary
+
+  -
     name: SoundToLightVisualisationPlugin
     duration: 60
     policy: exp
@@ -41,7 +48,7 @@ plugins:
 
   -
     name: SpinningWheelVisualisationPlugin
-    duration: 5
+    duration: 20
     speed: 30
     colours: black_and_white
   -
@@ -50,6 +57,13 @@ plugins:
     background_colour: red
     colour: white
     amplitude: 8.0
+
+  -
+    name: DiscoFloorVisualisationPlugin
+    duration: 60
+    square_size: 2
+    fps: 2
+    colour_set: secondary
 
   -
     name: SoundToLightVisualisationPlugin
