@@ -180,7 +180,7 @@ class SoundToLightVisualisationPlugin(VisualisationPlugin):
 
 				# Two options, either max, or mean
 				#standard_peak_value = max(max(self.rolling_max), 50) / 2
-				standard_peak_value = int(numpy.mean(self.rolling_max))
+				standard_peak_value = max(int(numpy.mean(self.rolling_max)), 50)
 
 				# Scale everything to the peak value
 				scaled_data = []
