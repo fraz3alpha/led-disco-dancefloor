@@ -191,32 +191,15 @@ class FireworksVisualisationPlugin(VisualisationPlugin):
 						if explosion_radius >= 1:
 							distance_decay_factor = 1.0 * (distance_away / explosion_radius)
 		
+						# As the firework decays, the alpha channel is set so that you can see through it 
+						#  to other fireworks behind, or it just fades to black
 						if distance_away < explosion_radius:
-							self.merge_pixel(canvas, x, y, (h,s,v), decay_ratio * distance_decay_factor, "HSV")
-#							canvas.set_pixel(x, y, (h,s,v * decay_ratio * distance_decay_factor), format="HSV")
+							canvas.set_pixel(x,y, (h,s,v), "HSV", decay_ratio * distance_decay_factor)
 						elif distance_away < explosion_radius + 1:
 							(d_quot, d_rem) = divmod(distance_away - explosion_radius, 1.0)
-							self.merge_pixel(canvas, x, y, (h,s,v), (1-d_rem) * decay_ratio * distance_decay_factor, "HSV")
-#							canvas.set_pixel(x, y, (h,s,(1-d_rem) * decay_ratio * distance_decay_factor), format="HSV")
+							canvas.set_pixel(x,y, (h,s,v), "HSV", (1-d_rem) * decay_ratio * distance_decay_factor)
 
 
 		# Return the canvas
-		return canvas
-
-	def merge_pixel(self, canvas, x, y, new_colour, alpha, format="RGB"):
-		# When we set a pixel we see we have set the alpha channel to, and merge it wil the existing
-		#  pixel
-		current_pixel_rgb = canvas.get_pixel_tuple(x,y)
-	
-		# If HSV, make it RGB format
-		if format == "HSV":
-			new_colour = self.reformat(colorsys.hsv_to_rgb(*new_colour))
-
-		new_r = current_pixel_rgb[0] * (1-alpha) + new_colour[0] * alpha
-		new_g = current_pixel_rgb[1] * (1-alpha) + new_colour[1] * alpha
-		new_b = current_pixel_rgb[2] * (1-alpha) + new_colour[2] * alpha
-
-		canvas.set_pixel(x,y,(new_r, new_g, new_b))
-
 		return canvas
 

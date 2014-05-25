@@ -64,7 +64,7 @@ class FloorCanvas(object):
 		return (self.width, self.height)
 
 	# Set a pixel with an int value
-	def set_pixel(self, x, y, colour, format="RGB"):
+	def set_pixel(self, x, y, colour, format="RGB", alpha=1.0):
 		x = int(round(x,0))
 		y = int(round(y,0))
 		if format == "RGB":
@@ -79,7 +79,20 @@ class FloorCanvas(object):
 				colour = self.reformat(colorsys.hsv_to_rgb(*colour))
 				colour = self.pack_colour_tuple(colour)
 		if self.is_in_range(x,y):
-			self.data[x][y] = colour
+
+			if alpha < 1.0:
+				current_pixel_rgb = self.unpack_colour_tuple(self.get_pixel(x,y))
+				new_colour = self.unpack_colour_tuple(colour)
+
+				new_r = current_pixel_rgb[0] * (1-alpha) + new_colour[0] * alpha
+				new_g = current_pixel_rgb[1] * (1-alpha) + new_colour[1] * alpha
+				new_b = current_pixel_rgb[2] * (1-alpha) + new_colour[2] * alpha
+
+				pixel_colour = self.pack_colour_tuple((new_r, new_g, new_b))
+
+				self.data[x][y] = pixel_colour
+			else:
+				self.data[x][y] = colour
 
 	def reformat (self, colour):
 		return int (round (colour[0] * 255))%256, \
@@ -215,24 +228,32 @@ class FloorCanvas(object):
 		#  but doesn't actually draw anything because it doesn't pass a surface through
 		return TextWriter.draw_text(None, text, (0,0,0), 0, 0)
 
-	def draw_circle(self, x_centre, y_centre, radius, colour, fill):
+	def draw_circle(self, x_centre, y_centre, radius, colour, fill, antialias=None):
 	
 		#radius = int(round(radius, 0))
 
 		x = 0
 		y = int(math.sqrt(radius ** 2 -1) + 0.5)
 
+		all_set_pixels = set()
 		while (x <= y):
 			# The outline
-			self.set_pixel(x_centre-x, y_centre+y, colour)
-			self.set_pixel(x_centre+x, y_centre+y, colour)
-			self.set_pixel(x_centre-x, y_centre-y, colour)
-			self.set_pixel(x_centre+x, y_centre-y, colour)
+			pixels_to_set = []
+			pixels_to_set.append((x_centre-x, y_centre+y))
+			pixels_to_set.append((x_centre+x, y_centre+y))
+			pixels_to_set.append((x_centre-x, y_centre-y))
+			pixels_to_set.append((x_centre+x, y_centre-y))
 
-			self.set_pixel(x_centre-y, y_centre+x, colour)
-			self.set_pixel(x_centre+y, y_centre+x, colour)
-			self.set_pixel(x_centre-y, y_centre-x, colour)
-			self.set_pixel(x_centre+y, y_centre-x, colour)
+			pixels_to_set.append((x_centre-y, y_centre+x))
+			pixels_to_set.append((x_centre+y, y_centre+x))
+			pixels_to_set.append((x_centre-y, y_centre-x))
+			pixels_to_set.append((x_centre+y, y_centre-x))
+		
+			all_set_pixels.update(pixels_to_set)
+
+			for pixel in pixels_to_set:
+				(pixel_x, pixel_y) = pixel
+				self.set_pixel(pixel_x, pixel_y, colour)
 
 			# The fill
 			if fill is not None:
@@ -253,6 +274,39 @@ class FloorCanvas(object):
 			x += 1
 			if x > radius: break
 			y = int(math.sqrt(radius ** 2 - x ** 2) + 0.5)
+
+		# This doesn't work that well.
+		# Basically, it attempts to see if there are any pixels that should be fractionally illuminated
+		#  by looking to see if any pixels are < 1.0 pixel away, and turn them on a bit
+		if antialias is not None:
+			self.logger.info("Total number of set pixels: %d" % (len(all_set_pixels)))
+
+			surround_pixels = set()
+			for pixel in all_set_pixels:
+				(pixel_x, pixel_y) = pixel
+				surround_pixels.add((pixel_x-1, pixel_y))
+				surround_pixels.add((pixel_x+1, pixel_y))
+
+				surround_pixels.add((pixel_x-1, pixel_y+1))
+				surround_pixels.add((pixel_x  , pixel_y+1))
+				surround_pixels.add((pixel_x+1, pixel_y+1))
+
+				surround_pixels.add((pixel_x-1, pixel_y-1))
+				surround_pixels.add((pixel_x  , pixel_y-1))
+				surround_pixels.add((pixel_x+1, pixel_y-1))
+
+			self.logger.info("Total number of surrounding pixels: %d" % (len(surround_pixels)))
+			# The pixels that we haven't already set
+			pixels_not_already_set = surround_pixels.difference(all_set_pixels)
+	
+			for pixel in pixels_not_already_set:
+				(pixel_x, pixel_y) = pixel
+				distance_away = math.sqrt((pixel_x-x_centre)**2 + (pixel_y-y_centre)**2)
+				delta = abs(distance_away - radius)
+				#self.logger.info("%d,%d is %f off" % (pixel_x, pixel_y, delta))
+				if delta < 1.0:
+					delta /= 1.0
+					self.set_pixel(pixel_x, pixel_y, colour, "RGB", delta)
 
 		return None
 
