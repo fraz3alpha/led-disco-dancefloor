@@ -62,10 +62,10 @@ class LoveHeartVisualisationPlugin(VisualisationPlugin):
 
 		has_text = False
 		if (self.upper_name is not None and self.upper_name != ""):
-			canvas.draw_text(self.upper_name, (0xFF,0xFF,0xFF), 0, 0)	
+			self.draw_text(canvas, self.upper_name, 0, 0)	
 			has_text = True
 		if (self.lower_name is not None and self.lower_name != ""):
-			canvas.draw_text(self.lower_name, (0xFF,0xFF,0xFF), 0, 11)
+			self.draw_text(canvas, self.lower_name, 0, 11)	
 			has_text = True
 
 		# Drawing entirely black doesn't work very well, so draw a border
@@ -130,5 +130,44 @@ class LoveHeartVisualisationPlugin(VisualisationPlugin):
 				if (pixel_value == 1):
 					canvas.set_pixel(x+x_pos,y+y_pos, colour)
 
+	def draw_text(self, canvas, text, x, y):
+
+		if text == "Phil":
+			self.draw_phil(canvas, x, y)
+		elif text == "Naomi":
+			self.draw_naomi(canvas, x, y)
+		else:
+			canvas.draw_text(self.upper_name, (0xFF,0xFF,0xFF), x, y)
+
+		return canvas
+		
+
+	def draw_phil(self, canvas, x, y) :
+
+		# To make it central
+		offset = 4
+
+		canvas.draw_text("P", (0xFF,0xFF,0xFF), x+offset, y)
+
+		# Use the narrow i that we have to use for Naomi, and a h
+		custom_text = {"h": (0x7F, 0x08, 0x04, 0x78, 0), "i": (0x7D, 0, 0, 0 ,0), "l": (0x7F, 0,0,0,0),}
+		canvas.draw_text("h", (0xFF,0xFF,0xFF), x+offset+6, y, custom_text)
+		canvas.draw_text("i", (0xFF,0xFF,0xFF), x+offset+11, y, custom_text)
+		canvas.draw_text("l", (0xFF,0xFF,0xFF), x+offset+13, y, custom_text)
+
 		return canvas
 	
+	def draw_naomi(self, canvas, x, y) :
+
+		offset = 0
+		canvas.draw_text("N", (0xFF,0xFF,0xFF), x+offset, y)
+
+		# Hand craft a narrower a & o
+		custom_text = {"o": (0x38, 0x44, 0x44, 0x38, 0x00), "a": (0x20, 0x54, 0x54, 0x78, 0x00), "i": (0x7D, 0, 0, 0 ,0)}
+		canvas.draw_text("a", (0xFF,0xFF,0xFF), x+offset+6, y, custom_text)
+		canvas.draw_text("o", (0xFF,0xFF,0xFF), x+offset+11, y, custom_text)
+		canvas.draw_text("m", (0xFF,0xFF,0xFF), x+offset+16, y)
+		canvas.draw_text("i", (0xFF,0xFF,0xFF), x+offset+22, y, custom_text)
+
+		return canvas
+

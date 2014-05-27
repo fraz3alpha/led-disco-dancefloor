@@ -99,11 +99,11 @@ class TextWriter():
 	}
 
 	@staticmethod
-	def draw_text(surface, text, colour, x_pos, y_pos):
+	def draw_text(surface, text, colour, x_pos, y_pos, custom_text=None):
 		"""
 		Draws text in the specified place, in the appropriate colour
 		"""
-		text_buffer = TextWriter.make_text(text)
+		text_buffer = TextWriter.make_text(text, custom_text)
 
 		width = len(text_buffer)
 		height = 0
@@ -124,7 +124,7 @@ class TextWriter():
 		return (width, height)
 
 	@staticmethod
-	def make_text(string):
+	def make_text(string, custom_text=None):
 		"""
 		Construct a buffer that contains which pixels to draw (=1) to make text
 		"""
@@ -145,7 +145,12 @@ class TextWriter():
 		#  5x7 font collection, and then insert the data into the output array
 		character_number = 0
 		for character in string:
-			character_definition = TextWriter.font_5x7[character]
+			character_definition = None
+			if custom_text is not None:
+				if character in custom_text:
+					character_definition = custom_text[character]
+			if character_definition is None:
+				character_definition = TextWriter.font_5x7[character]
 			font_characters.append(character_definition)
 			if (character_definition != None):
 				for x in range(0, len(character_definition)):

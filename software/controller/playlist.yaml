@@ -30,6 +30,12 @@ plugins:
     duration: 30
 
   -
+    name: LoveHeartVisualisationPlugin
+    duration: 30
+    upper_name: Phil
+    lower_name: Naomi
+
+  -
     name: DiscoFloorVisualisationPlugin
     duration: 60
     square_size: 2

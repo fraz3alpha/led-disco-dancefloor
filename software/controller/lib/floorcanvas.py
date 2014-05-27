@@ -218,9 +218,9 @@ class FloorCanvas(object):
 				self.data[x][y] = colour
 
 	# Text methods:
-	def draw_text(self, text, colour, x_pos, y_pos):
+	def draw_text(self, text, colour, x_pos, y_pos, custom_text=None):
 		# Returns the text size as a (width, height) tuple for reference
-		text_size = TextWriter.draw_text(self, text, colour, x_pos, y_pos)
+		text_size = TextWriter.draw_text(self, text, colour, x_pos, y_pos, custom_text)
 		return text_size
 
 	def get_text_size(self, text):
