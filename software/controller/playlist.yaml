@@ -12,6 +12,12 @@ plugins:
     duration: 30
 
   -
+    name: PatternsVisualisationPlugin
+    duration: 30
+    patterns:
+      - Explode 2.1
+
+  -
     name: SpinningWheelVisualisationPlugin
     duration: 30
     colours: full_colour
@@ -34,6 +40,12 @@ plugins:
     duration: 30
     upper_name: Phil
     lower_name: Naomi
+
+  -
+    name: PatternsVisualisationPlugin
+    duration: 30
+    patterns:
+      - Nyan Cat
 
   -
     name: DiscoFloorVisualisationPlugin

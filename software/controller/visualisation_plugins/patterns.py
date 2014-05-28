@@ -26,7 +26,7 @@ class Pattern(object):
 	logger = logging.getLogger(__name__)
 
 	def __init__(self, patternFile):
-		self.logger.info("Loading %s" % patternFile)
+		#self.logger.info("Loading %s" % patternFile)
 		with open(patternFile) as csvFile:
 			reader = csv.reader(csvFile)
 			patternMeta = next(reader)
@@ -240,107 +240,133 @@ class PatternsVisualisationPlugin(VisualisationPlugin):
 		script_directory = os.path.dirname(os.path.realpath(__file__))
 		self.plugin_resource_directory = os.path.join(script_directory, DEFAULT_PLUGIN_RESOURCE_DIRECTORY)
 
+	def add_to_pattern_repo(self, name, pattern_file, beat_service, filters=None, other_args=[]):
+
+		# Check that the file exists
+		if not os.path.isfile(pattern_file):
+			self.logger.warn("Unable to create %s pattern, no such file: %s" % (name, pattern_file))
+			return
+
+		if filters == None:
+			pattern_filter = PatternFilter(pattern_file, beat_service)
+		else:
+			pattern_filter = PatternFilter(pattern_file, beat_service, filters)
+
+		pattern_def = [pattern_filter]
+		for arg in other_args:
+			pattern_def.append(arg)
+
+		self.__pattern_repo[name] = pattern_def
+	
+		self.logger.info("Added pattern %s" % name)
+
+		return pattern_def
+			
+
+	def add_pattern(self, name):
+		self.logger.info("Searching for requested pattern: %s" % name)
+		if name in self.__pattern_repo:
+			self.logger.info("Adding pattern: %s" % name)
+			self.__patterns.append(self.__pattern_repo[name])
+		else:
+			self.logger.warn("Unable to find pattern: %s" % name)
+
 	def configure(self, config):
+		self.config = config
 		self.__beatService = BeatService()
 		self.__patternIndex = -1
 		self.__nextPatternTime = 0
 		self.__patternDisplaySecs = 10
+
+		self.__pattern_repo = {}
+
+		# Nyan cat: A loop of the cat scrolling through space
+		self.add_to_pattern_repo("Nyan Cat", os.path.join(self.plugin_resource_directory, "nyan.csv"), self.__beatService)
+
+		# Knight Rider: A scanning bar going from left to right and back again, 
+		#  with a blur, and a changing colour
+		self.add_to_pattern_repo("Knight Rider", os.path.join(self.plugin_resource_directory, "knightRider.csv"), self.__beatService, 
+				[
+					MotionBlurFilter(0.9)
+				], 
+				[ColourFilter((1.0, 0.0, 1.0)),	BeatHueAdjustmentFilter(self.__beatService, 0.2)])
+
+		self.add_to_pattern_repo("Explode A.1", os.path.join(self.plugin_resource_directory, "explodeA.csv"), self.__beatService,
+				[
+					MotionBlurFilter(0.9)
+				],
+				[ColourFilter((0.0, 0.0, 1.0)),	HueScroller()])
+
+		self.add_to_pattern_repo("Matrix", os.path.join(self.plugin_resource_directory, "matrix.csv"), self.__beatService,
+				[
+					MotionBlurFilter(0.95)
+				],
+				[ColourFilter((0.0, 1.0, 0.0)),	HueScroller()])
+
+
+		self.add_to_pattern_repo("Knight Rider 2", os.path.join(self.plugin_resource_directory, "knightRider.csv"), self.__beatService,
+				[
+					MotionBlurFilter(0.9)
+				],
+				[ColourFilter((1.0, 0.0, 0.0)),	HueScroller()])
+			
+		self.add_to_pattern_repo("Matrix 2", os.path.join(self.plugin_resource_directory, "matrix.csv"), self.__beatService,
+				[
+					MotionBlurFilter(0.95)
+				],
+				[ColourFilter((0.0, 1.0, 0.0)),	HueScroller()])
+
+		self.add_to_pattern_repo("Explode 0.1", os.path.join(self.plugin_resource_directory, "explode.csv"), self.__beatService,
+				[
+					MotionBlurFilter(0.9)
+				],
+				[ColourFilter((1.0, 0.0, 1.0)),	BeatHueAdjustmentFilter(self.__beatService, 0.2)])
+
+		self.add_to_pattern_repo("Explode 2.1", os.path.join(self.plugin_resource_directory, "explode2.csv"), self.__beatService,
+				[
+					MotionBlurFilter(0.9)
+				],
+				[ColourFilter((0.0, 0.0, 1.0)),	HueScroller()])
+
+
+		self.add_to_pattern_repo("Wavey Wave", os.path.join(self.plugin_resource_directory, "waveyWave.csv"), self.__beatService,
+				None,
+				[ColourFilter((0.0, 0.0, 1.0)),	BeatHueAdjustmentFilter(self.__beatService, 0.2)])
+
+		self.add_to_pattern_repo("Diamond", os.path.join(self.plugin_resource_directory, "diamond.csv"), self.__beatService,
+				[
+					MotionBlurFilter(0.7)
+				],
+				[ColourFilter((1.0, 0.5, 0.5)),	HueScroller()])
 		
-		self.__patterns = [
-			[
-				PatternFilter(os.path.join(self.plugin_resource_directory, "nyan.csv"), self.__beatService)
-			],
+		self.__patterns = []
 
-			[
-				PatternFilter(os.path.join(self.plugin_resource_directory, "knightRider.csv"), self.__beatService,
-					[
-						MotionBlurFilter(0.9)
-					]),
-				ColourFilter((1.0, 0.0, 1.0)),
-				BeatHueAdjustmentFilter(self.__beatService, 0.2)
-			],
-			[
-				PatternFilter(os.path.join(self.plugin_resource_directory, "explodeA.csv"), self.__beatService,
-				[
-					MotionBlurFilter(0.9)
-				]),
-				ColourFilter((0.0, 0.0, 1.0)),
-				HueScroller()
-			],
-			[
-				PatternFilter(os.path.join(self.plugin_resource_directory, "matrix.csv"), self.__beatService,
-				[
-					MotionBlurFilter(0.95)
-				]),
-				ColourFilter((0.0, 1.0, 0.0)),
-				HueScroller()
-			],
-		]
-		"""
-			[
-				PatternFilter("plugins/knightRider.csv", self.__beatService,
-					[
-						MotionBlurFilter(0.9)
-					]),
-				ColourFilter((1.0, 0.0, 0.0)),
-				HueScroller()
-			],
-			[
-				PatternFilter("plugins/knightRider.csv", self.__beatService,
-					[
-						MotionBlurFilter(0.9)
-					]),
-				ColourFilter((1.0, 0.0, 0.0)),
-				BeatLightnessAdjustment(self.__beatService), #would like to apply this to the raw pattern before motion blur, but not pattern-specific
-				HueScroller(),
-			],
-			[
-				PatternFilter("plugins/matrix.csv", self.__beatService,
-				[
-					MotionBlurFilter(0.95)
-				]),
-				ColourFilter((0.0, 1.0, 0.0)),
-				HueScroller()
-			],
-			[
-				PatternFilter("plugins/explode.csv", self.__beatService,
-				[
-					MotionBlurFilter(0.9)
-				]),
-				ColourFilter((1.0, 0.0, 1.0)),
-				BeatHueAdjustmentFilter(self.__beatService, 0.2)
-			],
-			[
-				PatternFilter("plugins/explode2.csv", self.__beatService,
-				[
-					MotionBlurFilter(0.9)
-				]),
-				ColourFilter((0.0, 0.0, 1.0)),
-				HueScroller()
-			],
-			[
-				PatternFilter("plugins/explodeA.csv", self.__beatService,
-				[
-					MotionBlurFilter(0.9)
-				]),
-				ColourFilter((0.0, 0.0, 1.0)),
-				HueScroller()
-			],
-			[
-				PatternFilter("plugins/waveyWave.csv", self.__beatService),
-				ColourFilter((0.0, 0.0, 1.0)),
-				BeatHueAdjustmentFilter(self.__beatService, 0.2)
-			],
-			[
-				PatternFilter("plugins/diamond.csv", self.__beatService, 
-					[
-						MotionBlurFilter(0.7)
-					]),
-				ColourFilter((1.0, 0.5, 0.5)),
-				HueScroller()
-			]
-		"""
+		if self.config is not None:
+			self.logger.info("Config is not none")
+			patterns = None
+			
+			if "patterns" in self.config:
+				for pattern in self.config["patterns"]:
+					self.add_pattern(pattern)
 
+		else:
+			self.logger.info("Config was none, what should I do?")
+		
+		if len(self.__patterns) == 0:
+			self.logger.info("Adding default patterns")
+
+			self.add_pattern("Nyan Cat")
+			self.add_pattern("Knight Rider")
+			self.add_pattern("Knight Rider 2")
+			self.add_pattern("Diamond")
+			self.add_pattern("waveyWave")
+			self.add_pattern("Explode A.1")
+			self.add_pattern("Explode A.2")
+			self.add_pattern("Explode 0.1")
+			self.add_pattern("Explode 2.1")
+
+		
+		return
 
 	# Interface Methods
 
@@ -397,8 +423,17 @@ class PatternsVisualisationPlugin(VisualisationPlugin):
 	
 	def __getActivePattern(self):
 		tim = time.time()
+		if len(self.__patterns) == 0:
+			self.logger.warn("No patterns!")
+			return None
+
+		if len(self.__patterns) == 1:
+			self.__patternIndex = 0
+			return self.__patterns[0]
+
 		if self.__nextPatternTime < tim:
 			self.__patternIndex = (self.__patternIndex + 1) % len(self.__patterns)
+			self.logger.info("Switching to pattern #%d" % self.__patternIndex)
 			self.__nextPatternTime = tim + self.__patternDisplaySecs
 		
 		return self.__patterns[self.__patternIndex]
