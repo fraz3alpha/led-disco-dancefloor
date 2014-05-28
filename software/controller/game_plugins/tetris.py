@@ -254,9 +254,11 @@ class TetrisGamePlugin(GamePlugin):
 						if landed:
 							self._landed(player)
 					if int(event.value) == 0:
-						if event.axis == self.game_state[player]["repeat_axis"]:
-							user_event_diff = repeats[player]["axis"]
-							pygame.time.set_timer(USEREVENT+user_event_diff,0)
+						self.logger.info("player state: %s" % self.game_state[player])
+						if "repeat_axis" in self.game_state[player]:
+							if event.axis == self.game_state[player]["repeat_axis"]:
+								user_event_diff = repeats[player]["axis"]
+								pygame.time.set_timer(USEREVENT+user_event_diff,0)
 			elif pygame.event.event_name(event.type) == "UserEvent":
 				event_number = event.type - 24
 				if event_number < 2: # Events 0 and 1 are the down moves for players
