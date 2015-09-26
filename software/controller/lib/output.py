@@ -399,6 +399,7 @@ class FormattedByteOutput(Output):
     def __init__(self):
         self.logger.info("__init__ for FormattedByteOutput")
         self.converter = None
+        self.filters = []
 
     def set_output_converter(self, converter):
         # The converter will be used to pick the
@@ -437,9 +438,32 @@ class FormattedByteOutput(Output):
             for x_y in self.converter:
                 (x, y) = x_y
                 rgb = canvas_array[x][y]
+                for filter in self.filters:
+                    rgb = filter.modify(rgb)
                 output_string += self.form_pixel_data(rgb)
 
         return output_string
+
+    """
+    Append filter and return self so that you can chain additions
+    """
+    def append_filter(self, filter):
+        self.filters.append(filter)
+        return self
+
+    """
+    Pop filter from the list and return it
+    """
+    def pop_filter(self):
+        return self.filters.pop()
+
+    """
+    Clear all filters and return the list of previously set filters
+    """
+    def clear_filters(self):
+        filters = self.filters
+        self.filters = []
+        return filters
 
     def form_pixel_data(self, rgb):
 

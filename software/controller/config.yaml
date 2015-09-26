@@ -6,7 +6,16 @@ system:
   debug: False
   debug_logging: True
   pipe: /tmp/dance_pipe
-  floor_rotation: 0
+  floor_rotation: 2
+
+  filters:
+    1:
+        name: ClearFilter
+#    2:
+#        name: NegativeFilter
+    3:
+        name: NeutralDensityFilter
+        factor: 1
 
 outputs:
   1:
@@ -14,7 +23,7 @@ outputs:
     type: serial
     tty: /dev/ttyUSB0
     baud: 1000000
-    enabled: False
+    enabled: True
 
   2:
     name: dancefloor gui

@@ -103,6 +103,7 @@ from lib.playlist import PluginPlaylistModel
 from lib.controllers import ControllerInput
 from lib.menu import Menu
 from lib.pluginmodel import PluginModel
+from lib.filters import ClearFilter, NegativeFilter, NeutralDensityFilter
 
 import logging
 
@@ -224,6 +225,17 @@ class DDRPiMaster():
         # Create a menu object to handle user input
         menu = Menu()
 
+        output_filters = []
+        if ("system" in config and "filters" in config["system"]):
+            print ("Found filters config: %s" % config["system"]["filters"])
+            for filter_number, filter_config in sorted(config["system"]["filters"].items()):
+                if ("name" in filter_config and filter_config["name"] == "ClearFilter"):
+                    output_filters.append(ClearFilter(filter_config))
+                elif ("name" in filter_config and filter_config["name"] == "NegativeFilter"):
+                    output_filters.append(NegativeFilter(filter_config))
+                elif ("name" in filter_config and filter_config["name"] == "NeutralDensityFilter"):
+                    output_filters.append(NeutralDensityFilter(filter_config))
+
         # Set up the various outputs defined in the config.
         # Known types are the moment are "gui", "serial" and "pipe"
         if ("outputs" in config):
@@ -240,6 +252,8 @@ class DDRPiMaster():
                     serial_output = SerialOutput(details)
                     serial_output.set_name("SerialOutput-#%d" % output_number)
                     serial_output.set_output_converter(converter)
+                    for output_filter in output_filters:
+                        serial_output.append_filter(output_filter)
                     output_devices.append(serial_output)
                 elif details["type"] == "gui":
                     # Skip the gui if headless has been specified
