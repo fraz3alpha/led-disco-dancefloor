@@ -137,7 +137,7 @@ class LoveHeartVisualisationPlugin(VisualisationPlugin):
 		elif text == "Naomi":
 			self.draw_naomi(canvas, x, y)
 		else:
-			canvas.draw_text(self.upper_name, (0xFF,0xFF,0xFF), x, y)
+			canvas.draw_text(text, (0xFF,0xFF,0xFF), x, y)
 
 		return canvas
 		
