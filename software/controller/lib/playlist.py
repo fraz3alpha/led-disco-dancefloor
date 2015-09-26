@@ -7,223 +7,223 @@ import yaml
 
 import logging
 
+
 class PluginPlaylistModel(object):
+    logger = logging.getLogger(__name__)
 
-	logger = logging.getLogger(__name__)
+    # Contains a list of plugins that are active
+    # This could be a playlist for the evening, which
+    # repeats in a loop - with each plugin getting a
+    #  go for a while, before bowing out gracefully
+    #  for the next one to take over.
+    # Or, it could just be a list of all the plugins,
+    #  and allows a user to specify which one is on
+    #  at any given time
 
-	# Contains a list of plugins that are active
-	# This could be a playlist for the evening, which
-	#  repeats in a loop - with each plugin getting a
-	#  go for a while, before bowing out gracefully
-	#  for the next one to take over.
-	# Or, it could just be a list of all the plugins,
-	#  and allows a user to specify which one is on
-	#  at any given time
+    def __init__(self):
+        # Start out with an empty list
+        self.new_playlist()
+        self.model_changed_listeners = set()
+        return None
 
-	def __init__(self):
-		# Start out with an empty list
-		self.new_playlist()
-		self.model_changed_listeners = set()
-		return None
+    def new_playlist(self):
+        self.playlist = []
+        self.set_cycle_mode("LOOP")
+        self.set_order_mode("FIXED")
+        self.current_position = -1
+        self.current_plugin = None
 
-	def new_playlist(self):
-		self.playlist = []
-		self.set_cycle_mode("LOOP")
-		self.set_order_mode("FIXED")
-		self.current_position = -1
-		self.current_plugin = None
+    def log_message(self, msg, log_level=None):
+        #print ("%s - %s" % ("PluginPlaylistModel", msg))
+        return None
 
-	def log_message(self, msg, log_level=None):
-		#print ("%s - %s" % ("PluginPlaylistModel", msg))
-		return None
+    def add_model_changed_listener(self, listener):
+        self.model_changed_listeners.add(listener)
+        return None
 
-	def add_model_changed_listener(self, listener):
-		self.model_changed_listeners.add(listener)
-		return None
+    def remove_model_changed_listener(self, listener):
+        self.model_changed_listeners.remove(listener)
+        return None
 
-	def remove_model_changed_listener(self, listener):
-		self.model_changed_listeners.remove(listener)
-		return None
+    def notify_model_changed_listeners(self):
+        for listener in self.model_changed_listeners:
+            listener.playlist_model_changed_event()
+        return None
 
-	def notify_model_changed_listeners(self):
-		for listener in self.model_changed_listeners:
-			listener.playlist_model_changed_event()
-		return None
+    def get_current_plugin(self):
 
-	def get_current_plugin(self):
+        # If there aren't any [more] plugins available, return None
+        if (len(self.playlist) == 0):
+            return None
 
-		# If there aren't any [more] plugins available, return None
-		if (len(self.playlist) == 0):
-			return None
+        # If we are already at the last one, we could either keep going,
+        #  or stop. Lets keep going
+        #		if (self.current_position == len(self.playlist) - 1):
+        #			if self.current_plugin is not None:
+        #				return self.current_plugin
 
-		# If we are already at the last one, we could either keep going,
-		#  or stop. Lets keep going
-#		if (self.current_position == len(self.playlist) - 1):
-#			if self.current_plugin is not None:
-#				return self.current_plugin
+        # If we have a current plugin, see if it should
+        #  still be running
+        if self.current_plugin is not None:
+            still_valid = True
+            current_time = pygame.time.get_ticks()
+            start_time = self.current_plugin['start_time']
+            duration = self.current_plugin['duration'] * 1000
+            # If there is only one plugin, just leave it running
+            if len(self.playlist) == 1:
+                still_valid = True
+            elif (duration is not None and duration > 0):
+                if start_time is not None:
+                    self.log_message(self.current_plugin)
+                    self.log_message(current_time)
+                    if (current_time > start_time + duration):
+                        self.log_message("No longer valid, we need a new one")
+                        still_valid = False
 
-		# If we have a current plugin, see if it should 
-		#  still be running
-		if self.current_plugin is not None:
-			still_valid = True
-			current_time = pygame.time.get_ticks()
-			start_time = self.current_plugin['start_time']
-			duration = self.current_plugin['duration'] * 1000
-			# If there is only one plugin, just leave it running
-			if len(self.playlist) == 1:
-				still_valid = True
-			elif (duration is not None and duration > 0):
-				if start_time is not None:
-					self.log_message(self.current_plugin)
-					self.log_message(current_time)
-					if (current_time > start_time + duration):
-						self.log_message("No longer valid, we need a new one")
-						still_valid = False
-			
-			if still_valid:
-				return self.current_plugin
-		
-		# So, we need to get the next plugin. This might be because 
-		#  there wasn't one, or because the old one has expired.
-		self.log_message ("New plugin required")
-		self.log_message ("Playlist count: %d, current position: %d" % (len(self.playlist), self.current_position))
+            if still_valid:
+                return self.current_plugin
 
-		# Only increment if it is likely to do any good
-		self.logger.info("Current index = %d" % (self.current_position))
-		if self.current_position < len(self.playlist):
-			self.current_position += 1
-		# See if we have reached the end
-		if (self.current_position == len(self.playlist)) :
-			if  self.get_cycle_mode() == 'ONCE':
-				self.current_position = len(self.playlist) -1
-				return self.current_plugin
-			else:
-				# Assume 'LOOP'
-				self.current_position = 0
-			
-		self.log_message("The next potential plugin is %s" % (self.playlist[self.current_position]))
+        # So, we need to get the next plugin. This might be because
+        #  there wasn't one, or because the old one has expired.
+        self.log_message("New plugin required")
+        self.log_message("Playlist count: %d, current position: %d" % (len(self.playlist), self.current_position))
 
-		current_plugin = dict()
-		for entry in self.playlist[self.current_position]:
-			current_plugin[entry] = self.playlist[self.current_position][entry]
-		new_plugin_object = current_plugin['obj']
-		# Create the plugin object
-		current_plugin['instance'] = new_plugin_object()
-		current_plugin['instance'].configure(current_plugin)
+        # Only increment if it is likely to do any good
+        self.logger.info("Current index = %d" % (self.current_position))
+        if self.current_position < len(self.playlist):
+            self.current_position += 1
+        # See if we have reached the end
+        if (self.current_position == len(self.playlist)):
+            if self.get_cycle_mode() == 'ONCE':
+                self.current_position = len(self.playlist) - 1
+                return self.current_plugin
+            else:
+                # Assume 'LOOP'
+                self.current_position = 0
 
-		# Set the start time
-		current_plugin['start_time'] = pygame.time.get_ticks()	
+        self.log_message("The next potential plugin is %s" % (self.playlist[self.current_position]))
 
-		# Stop the current plugin if there is one
-		if self.current_plugin is not None:
-			self.current_plugin['instance'].stop()
+        current_plugin = dict()
+        for entry in self.playlist[self.current_position]:
+            current_plugin[entry] = self.playlist[self.current_position][entry]
+        new_plugin_object = current_plugin['obj']
+        # Create the plugin object
+        current_plugin['instance'] = new_plugin_object()
+        current_plugin['instance'].configure(current_plugin)
 
-		# Assign the current plugin to the current slot, and start it
-		self.current_plugin = current_plugin
-		self.current_plugin['instance'].start()
+        # Set the start time
+        current_plugin['start_time'] = pygame.time.get_ticks()
 
-		self.logger.info("returning new plugin - %s" % (self.current_plugin))
-		self.notify_model_changed_listeners()
-		return self.current_plugin		
-	
-	def get_current_plugin_remaining_time(self):
-		current_time = pygame.time.get_ticks()
-		start_time = self.current_plugin['start_time']
-		duration = self.current_plugin['duration']*1000
-	
-		remaining_time = duration - (current_time - start_time)
+        # Stop the current plugin if there is one
+        if self.current_plugin is not None:
+            self.current_plugin['instance'].stop()
 
-		return remaining_time
+        # Assign the current plugin to the current slot, and start it
+        self.current_plugin = current_plugin
+        self.current_plugin['instance'].start()
 
-	def get_current_plugin_index(self):
-		return self.current_position
+        self.logger.info("returning new plugin - %s" % (self.current_plugin))
+        self.notify_model_changed_listeners()
+        return self.current_plugin
 
-	def get_cycle_mode(self):
-		return self.cycle_mode
+    def get_current_plugin_remaining_time(self):
+        current_time = pygame.time.get_ticks()
+        start_time = self.current_plugin['start_time']
+        duration = self.current_plugin['duration'] * 1000
 
-	def set_cycle_mode(self, mode):
-		if mode in self.get_cycle_modes():
-			self.cycle_mode = mode
-			return mode
-		return None
+        remaining_time = duration - (current_time - start_time)
 
-	def get_cycle_modes(self):
-		return ["LOOP", "ONCE"]
+        return remaining_time
 
-	def get_order_mode(self):
-		return self.order_mode
+    def get_current_plugin_index(self):
+        return self.current_position
 
-	def set_order_mode(self, mode):
-		if mode in self.get_order_modes():
-			self.order_mode = mode
-			return mode
-		return None
+    def get_cycle_mode(self):
+        return self.cycle_mode
 
-	def get_order_modes(self):
-		return ["FIXED", "RANDOM"]
+    def set_cycle_mode(self, mode):
+        if mode in self.get_cycle_modes():
+            self.cycle_mode = mode
+            return mode
+        return None
 
-	def get_next_plugin(self):
-		if len(self.playlist) == 0:
-			return None
-		self.current_position = self.current_position + 1
-		if self.current_position > len(self.playlist)-1:
-			if self.cycle_mode == "LOOP":
-				self.current_position = 0
-			else:
-				return None
-		current_entry = self.playlist[self.current_position]
-		return current_entry
+    def get_cycle_modes(self):
+        return ["LOOP", "ONCE"]
 
-	def add_plugin(self, plugin_details):
-		# The plugin_details include general properties such
-		#  as duration, but also potentially plugin specific
-		#  properties such as period, amplitude, speed etc..
-		self.playlist.append(plugin_details)
+    def get_order_mode(self):
+        return self.order_mode
 
-	def get_playlist(self):
-		return self.playlist
+    def set_order_mode(self, mode):
+        if mode in self.get_order_modes():
+            self.order_mode = mode
+            return mode
+        return None
 
-	def get_playlist_length(self):
-		return len(self.playlist)
+    def get_order_modes(self):
+        return ["FIXED", "RANDOM"]
 
-	def get_remaining_playlist_time(self):
-		pass
+    def get_next_plugin(self):
+        if len(self.playlist) == 0:
+            return None
+        self.current_position = self.current_position + 1
+        if self.current_position > len(self.playlist) - 1:
+            if self.cycle_mode == "LOOP":
+                self.current_position = 0
+            else:
+                return None
+        current_entry = self.playlist[self.current_position]
+        return current_entry
 
-	def print_playlist(self):
-		self.logger.info("Plugin playlist:")
-		self.logger.info("  Ordering=%s, Cycling=%s" % (self.get_order_mode(), self.get_cycle_mode()))
-		for entry in self.playlist:
-			self.logger.info("  %s, duration=%d" % (entry['name'], entry['duration']))
+    def add_plugin(self, plugin_details):
+        # The plugin_details include general properties such
+        #  as duration, but also potentially plugin specific
+        #  properties such as period, amplitude, speed etc..
+        self.playlist.append(plugin_details)
 
-	def load_playlist(self, available_plugins, playlist_file):
-		if not os.path.exists(playlist_file):
-			self.logger.error("Unable to load playlist, it doesn't exist: %s" % playlist_file)
-			return None
-		f = open(playlist_file)
-		data = yaml.load(f)
-		f.close()
+    def get_playlist(self):
+        return self.playlist
 
-		if data is None:
-			self.logger.error("Unable to parse playlist: %s" % playlist_file)
+    def get_playlist_length(self):
+        return len(self.playlist)
 
-		self.new_playlist()
-		
-		if "plugins" in data:
-			playlist_entries = data["plugins"]
-			for details in playlist_entries:
-				self.logger.info("Playlist entry: %s" % (details))
-				if "name" not in details:
-					# We need the name, else we can't do anything!
-					self.logger.warn("Missing name for entry : %s" % (details))
-					continue
-				plugin_name = details["name"]
-				# Add the class object to the details, provided we have it
-				if plugin_name not in available_plugins:
-					self.logger.warn("Unable to locate %s in available plugins" % plugin_name)
-					continue
-				details["obj"] = available_plugins[plugin_name]
-				self.logger.info("Adding plugin to playlist: %s" % details)
-				self.add_plugin(details)
+    def get_remaining_playlist_time(self):
+        pass
+
+    def print_playlist(self):
+        self.logger.info("Plugin playlist:")
+        self.logger.info("  Ordering=%s, Cycling=%s" % (self.get_order_mode(), self.get_cycle_mode()))
+        for entry in self.playlist:
+            self.logger.info("  %s, duration=%d" % (entry['name'], entry['duration']))
+
+    def load_playlist(self, available_plugins, playlist_file):
+        if not os.path.exists(playlist_file):
+            self.logger.error("Unable to load playlist, it doesn't exist: %s" % playlist_file)
+            return None
+        f = open(playlist_file)
+        data = yaml.load(f)
+        f.close()
+
+        if data is None:
+            self.logger.error("Unable to parse playlist: %s" % playlist_file)
+
+        self.new_playlist()
+
+        if "plugins" in data:
+            playlist_entries = data["plugins"]
+            for details in playlist_entries:
+                self.logger.info("Playlist entry: %s" % (details))
+                if "name" not in details:
+                    # We need the name, else we can't do anything!
+                    self.logger.warn("Missing name for entry : %s" % (details))
+                    continue
+                plugin_name = details["name"]
+                # Add the class object to the details, provided we have it
+                if plugin_name not in available_plugins:
+                    self.logger.warn("Unable to locate %s in available plugins" % plugin_name)
+                    continue
+                details["obj"] = available_plugins[plugin_name]
+                self.logger.info("Adding plugin to playlist: %s" % details)
+                self.add_plugin(details)
 
 
 
