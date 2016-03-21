@@ -313,16 +313,35 @@ class DDRPiMaster():
                 #  person using it should know what they are doing, so if it isn't available
                 #  for whatever reason, exit.
                 exit()
+
+        if "twitter" in config:
+
+            # Only bother importing this module if we are going to use it, hence not requiring
+            #  an extra dependency on a Twitter library if people don't want to use that
+            from lib.twitter import TwitterPlaylist
+
+            # Get the twitter credentials from the configuration file:
+            twitter_details = config["twitter"]
+
+            # If we want to limit which plugins can be selected by Twitter, do so here
+            plugin_whitelist = available_plugins
+
+            # Create the twitter plugin playlist
+            twitter_playlist = TwitterPlaylist(plugins=plugin_whitelist, details=twitter_details)
+
+            plugin_model.add_playlist(twitter_playlist)
+            plugin_model.set_current_playlist_by_index(1)
+
         if "playlist" in config["system"]:
 
-            # Retreive the list of playlists specified on the command line
+            # Retrieve the list of playlists specified on the command line
             #  or config file
             playlist_list = config["system"]["playlist"]
             self.logger.info(playlist_list)
             if len(playlist_list) > 0:
                 for playlist in playlist_list:
                     # Make the playlist an absolute path if it isn't already
-                    if (not os.path.isabs(playlist)):
+                    if not os.path.isabs(playlist):
                         root_directory = os.path.dirname(os.path.realpath(__file__))
                         playlist = os.path.join(root_directory, playlist)
                     # Load the playlist

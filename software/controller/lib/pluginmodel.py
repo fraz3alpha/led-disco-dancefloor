@@ -187,6 +187,7 @@ class PluginPlaylist(object):
     USER = 1
 
     states = ["STOPPED", "RUNNING", "PAUSED"]
+    loop_modes = ["LOOP", "ONCE"]
 
     logger = logging.getLogger(__name__)
 
@@ -204,6 +205,9 @@ class PluginPlaylist(object):
 
         self.total_pause_time = 0
         self.previous_pause_time = None
+
+        self.loop_mode = "LOOP"
+
         pass
 
     def _reset_playlist_state(self):
@@ -212,7 +216,7 @@ class PluginPlaylist(object):
 
     def add_plugin(self, plugin):
         self.plugins.append(plugin)
-        pass
+        return len(self.plugins)-1
 
     # Two sets of access methods.
     # 1: For when the playlist is running, and handles moving between
@@ -238,9 +242,12 @@ class PluginPlaylist(object):
                 plugin_duration = current_plugin.get_duration()
                 plugin_duration_so_far = pygame.time.get_ticks() - self.current_plugin_start_time
 
-                if plugin_duration_so_far > plugin_duration:
-                    self.logger.info("Plugin has exceeded intended duration")
-                    current_plugin = self.next()
+                if self.loop_mode == "LOOP" or self.current_position < len(self.plugins) - 1:
+                    if plugin_duration_so_far > plugin_duration:
+                        self.logger.info("Plugin has exceeded intended duration")
+                        current_plugin = self.next()
+                else:
+                    pass
 
         return current_plugin
 
@@ -259,7 +266,7 @@ class PluginPlaylist(object):
         # Don't bother iterating through plugins if there
         #  is only one. Leave it running so that it isn't
         #  continually reconfigured and restarted
-        if len(self.plugins) > 1:
+        if len(self.plugins) > 0:
             self.current_position += 1
             if self.current_position >= len(self.plugins):
                 self.current_position = 0
