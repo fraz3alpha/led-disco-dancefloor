@@ -23,6 +23,9 @@ mapping = {
     "wavyblob"      : "WavyBlobVisualisationPlugin"
 }
 
+# Default minimum plugin duration in seconds
+PLUGIN_DURATION_DEFAULT=6
+
 
 class TwitterListener(tweepy.streaming.StreamListener):
     def __init__(self, our_twitter_handle, api=None, callback=None):
@@ -172,12 +175,13 @@ class TwitterPlaylist(PluginPlaylist):
     # Callback from the Twitter stream with the plugin name which will have been parsed from
     #  the message
     # TODO: take in a set of properties that may have been defined in the Tweet request
-    def add_entry(self, plugin_name, plugin_for):
+    def add_entry(self, plugin_name, plugin_for, plugin_duration=PLUGIN_DURATION_DEFAULT):
         print ("Adding plugin: %s as requested from Twitter" % plugin_name)
         plugin = self.available_plugins[plugin_name]
         if plugin is not None:
             print ("Adding plugin object for %s" % plugin_name)
-            plugin_index = self.add_plugin(Plugin(plugin_name, plugin))
+            plugin_parameters = {"duration": plugin_duration}
+            plugin_index = self.add_plugin(Plugin(plugin_name, plugin, plugin_parameters))
             self.who_for[plugin_index] = plugin_for
         else:
             print ("Unable to find plugin object for %s" % plugin_name)
