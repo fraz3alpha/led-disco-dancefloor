@@ -194,7 +194,10 @@ class GuiOutput(Output):
         # If this is the only plugin, and it is on loop, then it is going
         #  to run for an indefinite amount of time
         if current_playlist.auto_advance is True:
-            remaining_time = "%ds" % int(current_playlist.get_plugin_remaining_time()/1000)
+            remaining_time_ms = current_playlist.get_plugin_remaining_time()
+            remaining_time = "-"
+            if remaining_time_ms > 0:
+                remaining_time = "%ds" % int(remaining_time_ms/1000)
 
             text = font.render(remaining_time, 1, (0xFF, 0xFF, 0xFF))
             textpos = text.get_rect()
