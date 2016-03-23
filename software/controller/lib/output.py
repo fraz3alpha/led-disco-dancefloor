@@ -194,7 +194,7 @@ class GuiOutput(Output):
         # If this is the only plugin, and it is on loop, then it is going
         #  to run for an indefinite amount of time
         if current_playlist.auto_advance is True:
-            remaining_time = "%d" % current_playlist.get_plugin_remaining_time()
+            remaining_time = "%ds" % int(current_playlist.get_plugin_remaining_time()/1000)
 
             text = font.render(remaining_time, 1, (0xFF, 0xFF, 0xFF))
             textpos = text.get_rect()
@@ -373,8 +373,8 @@ class GuiOutput(Output):
         # Draw something that will be in the background so we can see where
         #  the floor ends in the case where there is a border and the floor
         #  is the same colour as the background. A basic X works nicely.
-        pygame.draw.line(drawable, (0xFF, 0xFF, 0xFF), (0, 0), (width, height), 1)
-        pygame.draw.line(drawable, (0xFF, 0xFF, 0xFF), (0, height), (width, 0), 1)
+        #pygame.draw.line(drawable, (0xFF, 0xFF, 0xFF), (0, 0), (width, height), 1)
+        #pygame.draw.line(drawable, (0xFF, 0xFF, 0xFF), (0, height), (width, 0), 1)
 
         # Draw the pixels of the floor canvas onto the drawable object
         # The position is determined based on the size of each cell and the padding
