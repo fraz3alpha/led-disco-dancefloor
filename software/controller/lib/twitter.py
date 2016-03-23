@@ -68,7 +68,10 @@ class TwitterListener(tweepy.streaming.StreamListener):
             reply_tweet = "@%s - Thank you for your interest, I'll be sure to pass on your request for %s" % \
                           (status.user.screen_name, requested_plugin_short_name)
             print ("Tweet Reply: %s" % reply_tweet)
-            self.api.update_status(reply_tweet, status.id)
+            try:
+                self.api.update_status(reply_tweet, status.id)
+            except Exception as e:
+                print(e)
 
             if self.callback is not None:
                 try:
@@ -80,7 +83,10 @@ class TwitterListener(tweepy.streaming.StreamListener):
             # Reply
             reply_tweet = "@%s - Sorry, I can't work out what you wanted to display" % (status.user.screen_name)
             print ("Tweet Reply: %s" % reply_tweet)
-            self.api.update_status(reply_tweet, status.id)
+            try:
+                self.api.update_status(reply_tweet, status.id)
+            except Exception as e:
+                print(e)
 
 class TwitterPlaylist(PluginPlaylist):
 
@@ -195,7 +201,10 @@ class TwitterPlaylist(PluginPlaylist):
             plugin_for = self.who_for[index]
             print ("Starting plugin %s for %s" % (index, plugin_for))
             msg = "Starting %s for @%s" % (self.plugins[index].plugin_name, plugin_for)
-            self.api.update_status(msg)
+            try:
+                self.api.update_status(msg)
+            except Exception as e:
+                print(e)
 
 
     # The splash screen of the Twitter playlist should be different to the regular playlist
