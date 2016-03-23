@@ -314,24 +314,6 @@ class DDRPiMaster():
                 #  for whatever reason, exit.
                 exit()
 
-        if "twitter" in config:
-
-            # Only bother importing this module if we are going to use it, hence not requiring
-            #  an extra dependency on a Twitter library if people don't want to use that
-            from lib.twitter import TwitterPlaylist
-
-            # Get the twitter credentials from the configuration file:
-            twitter_details = config["twitter"]
-
-            # If we want to limit which plugins can be selected by Twitter, do so here
-            plugin_whitelist = available_plugins
-
-            # Create the twitter plugin playlist
-            twitter_playlist = TwitterPlaylist(plugins=plugin_whitelist, details=twitter_details)
-
-            plugin_model.add_playlist(twitter_playlist)
-            plugin_model.set_current_playlist_by_index(1)
-
         if "playlist" in config["system"]:
 
             # Retrieve the list of playlists specified on the command line
@@ -349,6 +331,31 @@ class DDRPiMaster():
                 # Start the first one we added
                 self.logger.info("Setting current playlist to the first one we added")
                 plugin_model.set_current_playlist_by_index(1)
+
+        if "twitter" in config:
+
+            if "enabled" in config["twitter"] and config["twitter"]["enabled"] is not True:
+                # Don't do anything, we don't want it at the moment
+                pass
+
+            else:
+
+                # Only bother importing this module if we are going to use it, hence not requiring
+                #  an extra dependency on a Twitter library if people don't want to use that
+                from lib.twitter import TwitterPlaylist
+
+                # Get the twitter credentials from the configuration file:
+                twitter_details = config["twitter"]
+
+                # If we want to limit which plugins can be selected by Twitter, do so here
+                plugin_whitelist = available_plugins
+
+                # Create the twitter plugin playlist
+                twitter_playlist = TwitterPlaylist(plugins=plugin_whitelist, details=twitter_details)
+
+                playlist_index = plugin_model.add_playlist(twitter_playlist)
+                if plugin_model.get_current_playlist() is None:
+                    plugin_model.set_current_playlist_by_index(playlist_index)
 
         # When there is no plugin specified and no user playlists either, make the first
         #  playlist active, and select either the first plugin, or, if it is available,
