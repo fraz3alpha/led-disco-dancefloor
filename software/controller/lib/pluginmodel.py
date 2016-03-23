@@ -107,6 +107,7 @@ class PluginModel(object):
         self.logger.info(playlist)
         self.playlists.append(playlist)
         self.logger.info("Playlist queue is now of size %d" % len(self.playlists))
+        return len(self.playlists) -1
 
     def add_playlist_from_file(self, playlist_file):
         if not os.path.exists(playlist_file):
@@ -145,8 +146,7 @@ class PluginModel(object):
                     self.logger.warn("Failed to add %s found in playlist %s" % (plugin_name, playlist_file))
 
         self.logger.info("Created playlist of size %d" % playlist.get_size())
-        self.add_playlist(playlist)
-        return playlist
+        return self.add_playlist(playlist)
 
     def add_plugin(self, plugin_name, plugin_object):
         self.logger.info("Adding plugin %s to the menu list" % plugin_name)
