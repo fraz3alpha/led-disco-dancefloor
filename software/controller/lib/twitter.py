@@ -20,7 +20,8 @@ mapping = {
     "disco"         : "DiscoFloorVisualisationPlugin",
     "blobs"         : "SpeedingBlobsVisualisationPlugin",
     "spinningwheel" : "SpinningWheelVisualisationPlugin",
-    "wavyblob"      : "WavyBlobVisualisationPlugin"
+    "wavyblob"      : "WavyBlobVisualisationPlugin",
+    "scrolltext"    : "ScrollingTextVisualisationPlugin"
 }
 
 # Default minimum plugin duration in seconds
@@ -58,14 +59,17 @@ class TwitterListener(tweepy.streaming.StreamListener):
         print ("Tweet contents: %s" % status.text)
 
         requested_plugin = None
+        text_after = None
         for plugin_eyecatcher in mapping:
             if plugin_eyecatcher in status.text.lower():
                 requested_plugin_short_name = plugin_eyecatcher
+                # Get the text after the plugin eyecatcher, case insensitive
+                text_after = status.text[status.text.lower().find(plugin_eyecatcher)+len(plugin_eyecatcher):].lstrip()
                 requested_plugin = mapping[plugin_eyecatcher]
 
         if requested_plugin is not None:
             # Reply
-            reply_tweet = "@%s - Thank you for your interest, I'll be sure to pass on your request for %s" % \
+            reply_tweet = "@%s - Thanks for your suggestion, I'll be sure to pass on your request for %s" % \
                           (status.user.screen_name, requested_plugin_short_name)
             print ("Tweet Reply: %s" % reply_tweet)
             try:
@@ -75,7 +79,7 @@ class TwitterListener(tweepy.streaming.StreamListener):
 
             if self.callback is not None:
                 try:
-                    self.callback(plugin_name=requested_plugin, plugin_for=status.user.screen_name)
+                    self.callback(plugin_name=requested_plugin, plugin_for=status.user.screen_name, extra_text=text_after)
                 except Exception as e:
                     print "Oops, something went wrong trying to callback with %s : %s" % (reply_tweet, e)
 
@@ -181,12 +185,21 @@ class TwitterPlaylist(PluginPlaylist):
     # Callback from the Twitter stream with the plugin name which will have been parsed from
     #  the message
     # TODO: take in a set of properties that may have been defined in the Tweet request
-    def add_entry(self, plugin_name, plugin_for, plugin_duration=PLUGIN_DURATION_DEFAULT):
+    def add_entry(self, plugin_name, plugin_for, plugin_duration=PLUGIN_DURATION_DEFAULT, extra_text=None):
         print ("Adding plugin: %s as requested from Twitter" % plugin_name)
         plugin = self.available_plugins[plugin_name]
         if plugin is not None:
             print ("Adding plugin object for %s" % plugin_name)
             plugin_parameters = {"duration": plugin_duration}
+
+            if plugin_name == "ScrollingTextVisualisationPlugin":
+                if extra_text is not None:
+                    # Set the text
+                    plugin_parameters["text"] = extra_text
+                    # Scale the duration based on the length of the word to scroll (twice?)
+                    plugin_parameters["duration"] = int(2 * (6 + len(extra_text) * 1))
+                    print ("Duration for '%s' is %ds" % (plugin_parameters["text"], plugin_parameters["duration"]))
+
             plugin_index = self.add_plugin(Plugin(plugin_name, plugin, plugin_parameters))
             self.who_for[plugin_index] = plugin_for
         else:
