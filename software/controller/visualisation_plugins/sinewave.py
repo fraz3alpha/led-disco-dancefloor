@@ -38,7 +38,7 @@ class SineWaveVisualisationPlugin(VisualisationPlugin):
         # Get the background colour
         background_colour = FloorCanvas.GREEN
         wave_colour = FloorCanvas.WHITE
-        amplitude = 5.0
+        amplitude = (canvas.get_height / 2) -1
         period = 18.0
 
         if self.config is not None:
