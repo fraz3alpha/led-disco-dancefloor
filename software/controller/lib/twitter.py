@@ -194,10 +194,14 @@ class TwitterPlaylist(PluginPlaylist):
 
             if plugin_name == "ScrollingTextVisualisationPlugin":
                 if extra_text is not None:
-                    # Set the text
-                    plugin_parameters["text"] = extra_text
+                    extra_text = extra_text.lstrip().rstrip()
+                    if len(extra_text) > 0:
+                        # Set the text
+                        plugin_parameters["text"] = extra_text
+                    else:
+                        plugin_parameters["text"] = "Welcome to #LJC @ IBM"
                     # Scale the duration based on the length of the word to scroll (twice?)
-                    plugin_parameters["duration"] = int(2 * (6 + len(extra_text) * 1))
+                    plugin_parameters["duration"] = int(2 * (6 + len(extra_text) * 1.2))
                     print ("Duration for '%s' is %ds" % (plugin_parameters["text"], plugin_parameters["duration"]))
 
             plugin_index = self.add_plugin(Plugin(plugin_name, plugin, plugin_parameters))
